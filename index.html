@@ -238,27 +238,6 @@ p { font-size: 13px; color: var(--text-light); }
     }
   }
 
-  async function loadFromFirebase(phone) {
-    try {
-      const userRef = doc(db, "users", phone);
-      const snap = await getDoc(userRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        state.user = data.user || state.user;
-        state.cart = data.cart || [];
-        state.orders = data.orders || [];
-        state.address = data.address || state.address;
-        state.favorites = data.favorites || [];
-        state.location = data.location || state.location;
-        saveLocal(); // Save to localStorage too
-        render();
-        toast("Welcome back, " + state.user.name);
-      }
-    } catch (e) {
-      console.error("Firebase load error:", e);
-    }
-  }
-
   /* ---------- HELPERS ---------- */
   function saveLocal() {
     localStorage.setItem("syedgo_user", JSON.stringify(state.user));
@@ -270,7 +249,6 @@ p { font-size: 13px; color: var(--text-light); }
     localStorage.setItem("syedgo_loc", state.location);
   }
 
-  // This replaces the old save() function
   function save() {
     saveLocal();
     saveToFirebase(); // Sync to cloud in background
@@ -707,11 +685,41 @@ p { font-size: 13px; color: var(--text-light); }
     toast("OTP sent! (Use 1234)");
   }
 
-  function verifyOTP() {
+  async function verifyOTP() {
     const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
     if (otp !== '1234') return toast("Invalid OTP. Use 1234");
-    document.getElementById('authStep2').classList.add('hidden');
-    document.getElementById('authStep3').classList.remove('hidden');
+    
+    const phone = window._phone;
+    toast("Checking account...");
+    
+    try {
+      const userRef = doc(db, "users", phone);
+      const snap = await getDoc(userRef);
+      
+      if (snap.exists()) {
+        // EXISTING USER: Load their data and log them in
+        const data = snap.data();
+        state.user = data.user || { name: "SYEDGO User", phone: phone };
+        state.cart = data.cart || [];
+        state.orders = data.orders || [];
+        state.address = data.address || { label: "Home", details: "", instructions: "" };
+        state.favorites = data.favorites || [];
+        state.location = data.location || "Swat, Pakistan";
+        
+        saveLocal(); // Save loaded data to local storage
+        closeModal();
+        render();
+        toast("Welcome back, " + state.user.name + "! 🎉");
+      } else {
+        // NEW USER: Ask them to complete profile
+        document.getElementById('authStep2').classList.add('hidden');
+        document.getElementById('authStep3').classList.remove('hidden');
+        toast("New here! Please complete your profile.");
+      }
+    } catch (e) {
+      console.error("Auth error:", e);
+      toast("Network error. Try again.");
+    }
   }
 
   function backToStep1() {
@@ -723,14 +731,35 @@ p { font-size: 13px; color: var(--text-light); }
     const name = document.getElementById('aName').value.trim();
     const email = document.getElementById('aEmail').value.trim();
     if (!name) return toast("Enter your name");
+    
     state.user = { name, phone: window._phone, email };
-    save(); 
-    // Load existing data from Firebase
-    loadFromFirebase(window._phone);
-    closeModal(); render(); toast("Welcome, " + name);
+    
+    // Save to local storage and Firebase
+    saveLocal(); 
+    saveToFirebase();
+    
+    closeModal(); 
+    render(); 
+    toast("Account created! Welcome, " + name + " 🎉");
   }
 
-  function logout() { if (!confirm("Logout?")) return; state.user = null; saveLocal(); render(); toast("Logged out"); }
+  function logout() { 
+    if (!confirm("Logout? This will clear your current session.")) return; 
+    
+    // Clear all user-specific state
+    state.user = null; 
+    state.cart = []; 
+    state.orders = []; 
+    state.favorites = []; 
+    state.address = { label: "Home", details: "", instructions: "" }; 
+    state.coupon = null;
+    
+    // Clear local storage completely
+    localStorage.clear();
+    
+    render(); 
+    toast("Logged out successfully"); 
+  }
 
   /* ---------- RENDER: ORDERS ---------- */
   function renderOrders() {
@@ -838,11 +867,6 @@ p { font-size: 13px; color: var(--text-light); }
   document.getElementById("locLabel").textContent = state.location;
   updateBadge();
   render();
-
-  // If user is already logged in, sync from Firebase on load
-  if (state.user && state.user.phone) {
-    loadFromFirebase(state.user.phone);
-  }
 
   // Expose functions to window so onclick works (Required for module scripts)
   window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome; window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav; window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode; window.updatePay = updatePay; window.placeOrder = placeOrder; window.openTracking = openTracking; window.openChat = openChat; window.sendChat = sendChat; window.openRating = openRating; window.setStar = setStar; window.submitRating = submitRating; window.openLocationModal = openLocationModal; window.setAddressLabel = setAddressLabel; window.saveAddress = saveAddress; window.openAuth = openAuth; window.sendOTP = sendOTP; window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup; window.logout = logout; window.reorder = reorder; window.closeModal = closeModal; window.toast = toast;
