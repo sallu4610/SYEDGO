@@ -170,601 +170,690 @@ p { font-size: 13px; color: var(--text-light); }
 <div id="toast" class="toast"></div>
 <div id="modalRoot"></div>
 
-<script>
-/* ---------- CONFIG & DATA ---------- */
-const CONFIG = { PLATFORM_FEE: 30, DEFAULT_DELIVERY: 150, RIDER_CUT: 120, SYEDGO_MARGIN: 30 };
+<script type="module">
+  // Import the functions you need from the SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-const SHOPS = [
-  { id: 1, name: "Al-Madina Superstore", category: "Supermarket", rating: 4.5, time: "20-30 min", distance: "1.2 km", emoji: "🛒", featured: true, hours: "8:00 AM - 11:00 PM", banner: "linear-gradient(135deg, #10b981, #047857)",
-    products: [ { id: 101, name: "Milk 1L", price: 220, desc: "Fresh full cream milk", stock: true }, { id: 102, name: "Eggs (12)", price: 180, desc: "Farm fresh eggs", stock: true }, { id: 103, name: "Bread", price: 120, desc: "Whole wheat bread", stock: true }, { id: 104, name: "Rice 5kg", price: 1450, desc: "Basmati rice", stock: true }, { id: 105, name: "Cooking Oil 1L", price: 580, desc: "Sunflower oil", stock: false } ] },
-  { id: 2, name: "KFC Swat", category: "Restaurant", rating: 4.2, time: "30-40 min", distance: "2.5 km", emoji: "🍗", featured: true, hours: "11:00 AM - 1:00 AM", banner: "linear-gradient(135deg, #ef4444, #b91c1c)",
-    products: [ { id: 201, name: "Zinger Burger", price: 550, desc: "Crispy chicken burger", stock: true }, { id: 202, name: "Chicken Pieces (4)", price: 700, desc: "Hot & crispy", stock: true }, { id: 203, name: "Fries Large", price: 250, desc: "Golden fries", stock: true }, { id: 204, name: "Pepsi 1.5L", price: 180, desc: "Chilled drink", stock: true } ] },
-  { id: 3, name: "Green Pharmacy", category: "Pharmacy", rating: 4.7, time: "15-25 min", distance: "0.8 km", emoji: "💊", featured: false, hours: "24 Hours", banner: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-    products: [ { id: 301, name: "Panadol (10)", price: 50, desc: "Pain relief", stock: true }, { id: 302, name: "Vitamin C", price: 300, desc: "Immunity booster", stock: true }, { id: 303, name: "Band-Aid", price: 80, desc: "Pack of 10", stock: true } ] },
-  { id: 4, name: "Fresh Fruits Mart", category: "Fruits & Veg", rating: 4.4, time: "25-35 min", distance: "3.1 km", emoji: "🍎", featured: false, hours: "7:00 AM - 9:00 PM", banner: "linear-gradient(135deg, #f59e0b, #d97706)",
-    products: [ { id: 401, name: "Apple 1kg", price: 280, desc: "Kashmiri apples", stock: true }, { id: 402, name: "Banana 1 dozen", price: 150, desc: "Fresh bananas", stock: true }, { id: 403, name: "Orange 1kg", price: 240, desc: "Juicy oranges", stock: true } ] },
-  { id: 5, name: "Pizza Corner", category: "Restaurant", rating: 4.1, time: "35-45 min", distance: "4.0 km", emoji: "🍕", featured: false, hours: "12:00 PM - 12:00 AM", banner: "linear-gradient(135deg, #f97316, #ea580c)",
-    products: [ { id: 501, name: "Chicken Tikka Pizza (M)", price: 950, desc: "Desi style pizza", stock: true }, { id: 502, name: "Garlic Bread", price: 300, desc: "Cheesy garlic bread", stock: true }, { id: 503, name: "Chocolate Lava Cake", price: 350, desc: "Molten chocolate", stock: true } ] }
-];
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGykbkZ4ITxkEgcxaQNZlH9rFO86c-xEU",
+    authDomain: "syedgo-2027.firebaseapp.com",
+    projectId: "syedgo-2027",
+    storageBucket: "syedgo-2027.firebasestorage.app",
+    messagingSenderId: "827702342584",
+    appId: "1:827702342584:web:a3d717e8b1bcf93529954d",
+    measurementId: "G-L0B1K6N1EY"
+  };
 
-const CATEGORIES = [ { key: "all", label: "All", em: "🏪" }, { key: "Restaurant", label: "Food", em: "🍔" }, { key: "Supermarket", label: "Grocery", em: "🛒" }, { key: "Pharmacy", label: "Pharmacy", em: "💊" }, { key: "Fruits & Veg", label: "Fruits", em: "🍎" } ];
-const COUPONS = { "SYED10": { type: "percent", value: 10, min: 500 }, "WELCOME50": { type: "flat", value: 50, min: 300 }, "FREESHIP": { type: "shipping", value: 0, min: 0 } };
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
 
-/* ---------- STATE ---------- */
-let state = {
-  tab: "home", category: "all", searchQuery: "", searchFilter: "all", currentShop: null, currentProduct: null,
-  user: JSON.parse(localStorage.getItem("syedgo_user")) || null,
-  cart: JSON.parse(localStorage.getItem("syedgo_cart")) || [],
-  orders: JSON.parse(localStorage.getItem("syedgo_orders")) || [],
-  favorites: JSON.parse(localStorage.getItem("syedgo_fav")) || [],
-  address: JSON.parse(localStorage.getItem("syedgo_addr")) || { label: "Home", details: "", instructions: "" },
-  coupon: JSON.parse(localStorage.getItem("syedgo_coupon")) || null,
-  location: localStorage.getItem("syedgo_loc") || "Swat, Pakistan"
-};
+  /* ---------- CONFIG & DATA ---------- */
+  const CONFIG = { PLATFORM_FEE: 30, DEFAULT_DELIVERY: 150, RIDER_CUT: 120, SYEDGO_MARGIN: 30 };
 
-/* ---------- HELPERS ---------- */
-function save() { localStorage.setItem("syedgo_user", JSON.stringify(state.user)); localStorage.setItem("syedgo_cart", JSON.stringify(state.cart)); localStorage.setItem("syedgo_orders", JSON.stringify(state.orders)); localStorage.setItem("syedgo_fav", JSON.stringify(state.favorites)); localStorage.setItem("syedgo_addr", JSON.stringify(state.address)); localStorage.setItem("syedgo_coupon", JSON.stringify(state.coupon)); localStorage.setItem("syedgo_loc", state.location); }
-function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2000); }
-function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
-function findProduct(id) { for (const s of SHOPS) { const p = s.products.find(x => x.id === id); if (p) return { ...p, shopId: s.id, shopName: s.name }; } return null; }
-function cartCount() { return state.cart.reduce((a, b) => a + b.qty, 0); }
-function cartSubtotal() { return state.cart.reduce((a, b) => a + b.price * b.qty, 0); }
-function deliveryFee() { return state.cart.length ? CONFIG.DEFAULT_DELIVERY : 0; }
-function platformFee() { return state.cart.length ? CONFIG.PLATFORM_FEE : 0; }
-function discountAmount() { if (!state.coupon) return 0; const c = COUPONS[state.coupon]; if (!c) return 0; const sub = cartSubtotal(); if (sub < c.min) return 0; if (c.type === "percent") return Math.round(sub * c.value / 100); if (c.type === "flat") return c.value; if (c.type === "shipping") return deliveryFee(); return 0; }
-function cartTotal() { return Math.max(0, cartSubtotal() + deliveryFee() + platformFee() - discountAmount()); }
-function updateBadge() { const b = document.getElementById("cartBadge"); const n = cartCount(); if (n > 0) { b.textContent = n; b.classList.remove("hidden"); } else b.classList.add("hidden"); }
-function toggleFav(shopId, e) { if(e) e.stopPropagation(); const i = state.favorites.indexOf(shopId); if (i >= 0) { state.favorites.splice(i, 1); toast("Removed from favourites"); } else { state.favorites.push(shopId); toast("Added to favourites ❤️"); } save(); render(); }
-function addToCart(pid, qty = 1) { const p = findProduct(pid); if (!p) return; const ex = state.cart.find(i => i.id === pid); if (ex) ex.qty += qty; else state.cart.push({ id: p.id, name: p.name, price: p.price, qty: qty, shopName: p.shopName }); save(); updateBadge(); render(); toast(p.name + " added"); }
-function changeQty(id, delta) { const item = state.cart.find(i => i.id === id); if (!item) return; item.qty += delta; if (item.qty <= 0) state.cart = state.cart.filter(i => i.id !== id); save(); updateBadge(); render(); }
-function setCategory(c) { state.category = c; render(); }
-function openShop(id) { state.currentShop = id; render(); window.scrollTo(0,0); }
-function backToHome() { state.currentShop = null; state.currentProduct = null; render(); }
+  const SHOPS = [
+    { id: 1, name: "Al-Madina Superstore", category: "Supermarket", rating: 4.5, time: "20-30 min", distance: "1.2 km", emoji: "🛒", featured: true, hours: "8:00 AM - 11:00 PM", banner: "linear-gradient(135deg, #10b981, #047857)", products: [ { id: 101, name: "Milk 1L", price: 220, desc: "Fresh full cream milk", stock: true }, { id: 102, name: "Eggs (12)", price: 180, desc: "Farm fresh eggs", stock: true }, { id: 103, name: "Bread", price: 120, desc: "Whole wheat bread", stock: true }, { id: 104, name: "Rice 5kg", price: 1450, desc: "Basmati rice", stock: true }, { id: 105, name: "Cooking Oil 1L", price: 580, desc: "Sunflower oil", stock: false } ] },
+    { id: 2, name: "KFC Swat", category: "Restaurant", rating: 4.2, time: "30-40 min", distance: "2.5 km", emoji: "🍗", featured: true, hours: "11:00 AM - 1:00 AM", banner: "linear-gradient(135deg, #ef4444, #b91c1c)", products: [ { id: 201, name: "Zinger Burger", price: 550, desc: "Crispy chicken burger", stock: true }, { id: 202, name: "Chicken Pieces (4)", price: 700, desc: "Hot & crispy", stock: true }, { id: 203, name: "Fries Large", price: 250, desc: "Golden fries", stock: true }, { id: 204, name: "Pepsi 1.5L", price: 180, desc: "Chilled drink", stock: true } ] },
+    { id: 3, name: "Green Pharmacy", category: "Pharmacy", rating: 4.7, time: "15-25 min", distance: "0.8 km", emoji: "💊", featured: false, hours: "24 Hours", banner: "linear-gradient(135deg, #3b82f6, #1d4ed8)", products: [ { id: 301, name: "Panadol (10)", price: 50, desc: "Pain relief", stock: true }, { id: 302, name: "Vitamin C", price: 300, desc: "Immunity booster", stock: true }, { id: 303, name: "Band-Aid", price: 80, desc: "Pack of 10", stock: true } ] },
+    { id: 4, name: "Fresh Fruits Mart", category: "Fruits & Veg", rating: 4.4, time: "25-35 min", distance: "3.1 km", emoji: "🍎", featured: false, hours: "7:00 AM - 9:00 PM", banner: "linear-gradient(135deg, #f59e0b, #d97706)", products: [ { id: 401, name: "Apple 1kg", price: 280, desc: "Kashmiri apples", stock: true }, { id: 402, name: "Banana 1 dozen", price: 150, desc: "Fresh bananas", stock: true }, { id: 403, name: "Orange 1kg", price: 240, desc: "Juicy oranges", stock: true } ] },
+    { id: 5, name: "Pizza Corner", category: "Restaurant", rating: 4.1, time: "35-45 min", distance: "4.0 km", emoji: "🍕", featured: false, hours: "12:00 PM - 12:00 AM", banner: "linear-gradient(135deg, #f97316, #ea580c)", products: [ { id: 501, name: "Chicken Tikka Pizza (M)", price: 950, desc: "Desi style pizza", stock: true }, { id: 502, name: "Garlic Bread", price: 300, desc: "Cheesy garlic bread", stock: true }, { id: 503, name: "Chocolate Lava Cake", price: 350, desc: "Molten chocolate", stock: true } ] }
+  ];
 
-/* ---------- RENDER: HOME ---------- */
-function renderHome() {
-  const featured = SHOPS.filter(s => s.featured);
-  const list = SHOPS.filter(s => state.category === "all" || s.category === state.category);
-  let featuredHtml = "";
-  if (featured.length > 0 && state.category === "all") {
-    featuredHtml = `
-      <h2>Featured Stores ⭐</h2>
-      <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;">
-        ${featured.map(s => `
-          <div class="card" style="min-width:220px;flex-shrink:0;margin-bottom:0;" onclick="openShop(${s.id})">
-            <div class="featured-tag">Featured</div>
-            <div class="shop-header" style="flex-direction:column;text-align:center;">
-              <div class="shop-img" style="margin-bottom:8px;">${s.emoji}</div>
-              <div class="shop-info"><h3>${s.name}</h3><p>⭐ ${s.rating} • ${s.time}</p></div>
-            </div>
-          </div>`).join("")}
-      </div>`;
+  const CATEGORIES = [ { key: "all", label: "All", em: "🏪" }, { key: "Restaurant", label: "Food", em: "🍔" }, { key: "Supermarket", label: "Grocery", em: "🛒" }, { key: "Pharmacy", label: "Pharmacy", em: "💊" }, { key: "Fruits & Veg", label: "Fruits", em: "🍎" } ];
+  const COUPONS = { "SYED10": { type: "percent", value: 10, min: 500 }, "WELCOME50": { type: "flat", value: 50, min: 300 }, "FREESHIP": { type: "shipping", value: 0, min: 0 } };
+
+  /* ---------- STATE ---------- */
+  let state = {
+    tab: "home", category: "all", searchQuery: "", searchFilter: "all", currentShop: null, currentProduct: null,
+    user: JSON.parse(localStorage.getItem("syedgo_user")) || null,
+    cart: JSON.parse(localStorage.getItem("syedgo_cart")) || [],
+    orders: JSON.parse(localStorage.getItem("syedgo_orders")) || [],
+    favorites: JSON.parse(localStorage.getItem("syedgo_fav")) || [],
+    address: JSON.parse(localStorage.getItem("syedgo_addr")) || { label: "Home", details: "", instructions: "" },
+    coupon: JSON.parse(localStorage.getItem("syedgo_coupon")) || null,
+    location: localStorage.getItem("syedgo_loc") || "Swat, Pakistan"
+  };
+
+  /* ---------- FIREBASE SYNC FUNCTIONS ---------- */
+  async function saveToFirebase() {
+    if (!state.user || !state.user.phone) return; // Only save if logged in
+    try {
+      const userRef = doc(db, "users", state.user.phone);
+      await setDoc(userRef, {
+        user: state.user,
+        cart: state.cart,
+        orders: state.orders,
+        address: state.address,
+        favorites: state.favorites,
+        location: state.location,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      console.log("☁️ Synced to Firebase");
+    } catch (e) {
+      console.error("Firebase save error:", e);
+    }
   }
-  return `
-    <div class="categories">
-      ${CATEGORIES.map(c => `<div class="cat ${state.category===c.key?'active':''}" onclick="setCategory('${c.key}')"><span class="em">${c.em}</span>${c.label}</div>`).join("")}
-    </div>
-    ${featuredHtml}
-    <h2>All Shops</h2>
-    ${list.map(s => `
-      <div class="card">
-        ${s.featured ? `<div class="featured-tag">Featured</div>` : ""}
-        <div class="shop-header" onclick="openShop(${s.id})">
-          <div class="shop-img">${s.emoji}</div>
-          <div class="shop-info" style="flex:1">
-            <h3>${s.name}</h3>
-            <p>${s.category} • ⭐ ${s.rating} • ${s.time} • ${s.distance}</p>
-          </div>
-          <button class="fav-btn" onclick="toggleFav(${s.id}, event)" style="background:none;border:none;font-size:20px;cursor:pointer;">${state.favorites.includes(s.id)?'❤️':'🤍'}</button>
-        </div>
-        <div style="margin-top:12px">
-          ${s.products.slice(0,2).map(p => `
-            <div class="product-row">
-              <div class="product-info" onclick="openProduct(${p.id})">
-                <h4>${p.name} ${p.stock === false ? '<span style="color:red;font-size:10px;">(Out of stock)</span>' : ''}</h4>
-                <p>Rs ${p.price}</p>
+
+  async function loadFromFirebase(phone) {
+    try {
+      const userRef = doc(db, "users", phone);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        state.user = data.user || state.user;
+        state.cart = data.cart || [];
+        state.orders = data.orders || [];
+        state.address = data.address || state.address;
+        state.favorites = data.favorites || [];
+        state.location = data.location || state.location;
+        saveLocal(); // Save to localStorage too
+        render();
+        toast("Welcome back, " + state.user.name);
+      }
+    } catch (e) {
+      console.error("Firebase load error:", e);
+    }
+  }
+
+  /* ---------- HELPERS ---------- */
+  function saveLocal() {
+    localStorage.setItem("syedgo_user", JSON.stringify(state.user));
+    localStorage.setItem("syedgo_cart", JSON.stringify(state.cart));
+    localStorage.setItem("syedgo_orders", JSON.stringify(state.orders));
+    localStorage.setItem("syedgo_fav", JSON.stringify(state.favorites));
+    localStorage.setItem("syedgo_addr", JSON.stringify(state.address));
+    localStorage.setItem("syedgo_coupon", JSON.stringify(state.coupon));
+    localStorage.setItem("syedgo_loc", state.location);
+  }
+
+  // This replaces the old save() function
+  function save() {
+    saveLocal();
+    saveToFirebase(); // Sync to cloud in background
+  }
+
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2000); }
+  function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
+  function findProduct(id) { for (const s of SHOPS) { const p = s.products.find(x => x.id === id); if (p) return { ...p, shopId: s.id, shopName: s.name }; } return null; }
+  function cartCount() { return state.cart.reduce((a, b) => a + b.qty, 0); }
+  function cartSubtotal() { return state.cart.reduce((a, b) => a + b.price * b.qty, 0); }
+  function deliveryFee() { return state.cart.length ? CONFIG.DEFAULT_DELIVERY : 0; }
+  function platformFee() { return state.cart.length ? CONFIG.PLATFORM_FEE : 0; }
+  function discountAmount() { if (!state.coupon) return 0; const c = COUPONS[state.coupon]; if (!c) return 0; const sub = cartSubtotal(); if (sub < c.min) return 0; if (c.type === "percent") return Math.round(sub * c.value / 100); if (c.type === "flat") return c.value; if (c.type === "shipping") return deliveryFee(); return 0; }
+  function cartTotal() { return Math.max(0, cartSubtotal() + deliveryFee() + platformFee() - discountAmount()); }
+  function updateBadge() { const b = document.getElementById("cartBadge"); const n = cartCount(); if (n > 0) { b.textContent = n; b.classList.remove("hidden"); } else b.classList.add("hidden"); }
+  function toggleFav(shopId, e) { if(e) e.stopPropagation(); const i = state.favorites.indexOf(shopId); if (i >= 0) { state.favorites.splice(i, 1); toast("Removed from favourites"); } else { state.favorites.push(shopId); toast("Added to favourites ❤️"); } save(); render(); }
+  function addToCart(pid, qty = 1) { const p = findProduct(pid); if (!p) return; const ex = state.cart.find(i => i.id === pid); if (ex) ex.qty += qty; else state.cart.push({ id: p.id, name: p.name, price: p.price, qty: qty, shopName: p.shopName }); save(); updateBadge(); render(); toast(p.name + " added"); }
+  function changeQty(id, delta) { const item = state.cart.find(i => i.id === id); if (!item) return; item.qty += delta; if (item.qty <= 0) state.cart = state.cart.filter(i => i.id !== id); save(); updateBadge(); render(); }
+  function setCategory(c) { state.category = c; render(); }
+  function openShop(id) { state.currentShop = id; render(); window.scrollTo(0,0); }
+  function backToHome() { state.currentShop = null; state.currentProduct = null; render(); }
+
+  /* ---------- RENDER: HOME ---------- */
+  function renderHome() {
+    const featured = SHOPS.filter(s => s.featured);
+    const list = SHOPS.filter(s => state.category === "all" || s.category === state.category);
+    let featuredHtml = "";
+    if (featured.length > 0 && state.category === "all") {
+      featuredHtml = `
+        <h2>Featured Stores ⭐</h2>
+        <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none;">
+          ${featured.map(s => `
+            <div class="card" style="min-width:220px;flex-shrink:0;margin-bottom:0;" onclick="openShop(${s.id})">
+              <div class="featured-tag">Featured</div>
+              <div class="shop-header" style="flex-direction:column;text-align:center;">
+                <div class="shop-img" style="margin-bottom:8px;">${s.emoji}</div>
+                <div class="shop-info"><h3>${s.name}</h3><p>⭐ ${s.rating} • ${s.time}</p></div>
               </div>
-              ${p.stock !== false ? `<button class="add-btn" onclick="addToCart(${p.id})">Add</button>` : ''}
             </div>`).join("")}
-          ${s.products.length > 2 ? `<button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="openShop(${s.id})">View all ${s.products.length} items</button>` : ""}
-        </div>
-      </div>`).join("") || '<div class="empty"><span class="big">🔎</span>No shops in this category</div>'}
-  `;
-}
-
-/* ---------- RENDER: SHOP DETAIL ---------- */
-function renderShop() {
-  const s = SHOPS.find(x => x.id === state.currentShop);
-  if (!s) return renderHome();
-  const menuCategories = [...new Set(s.products.map(p => p.name.split(' ')[0]))]; // Just for grouping logic
-  return `
-    <button class="add-btn" style="margin-bottom:12px;background:#f1f5f9;color:var(--text);border:1px solid var(--border)" onclick="backToHome()">← Back</button>
-    <div style="height:120px;border-radius:16px;background:${s.banner};margin-bottom:-40px;position:relative;z-index:1;"></div>
-    <div class="card" style="margin-top:-20px;position:relative;z-index:2;padding-top:50px;">
-      <div class="shop-header" style="position:absolute;top:-30px;left:16px;right:16px;">
-        <div class="shop-img" style="width:70px;height:70px;font-size:32px;border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);">${s.emoji}</div>
+        </div>`;
+    }
+    return `
+      <div class="categories">
+        ${CATEGORIES.map(c => `<div class="cat ${state.category===c.key?'active':''}" onclick="setCategory('${c.key}')"><span class="em">${c.em}</span>${c.label}</div>`).join("")}
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div>
-          <h3>${s.name}</h3>
-          <p style="margin-top:4px;">${s.category} • ⭐ ${s.rating} • ${s.distance}</p>
-          <p style="margin-top:4px;font-size:12px;color:var(--accent);font-weight:600;">🕒 ${s.hours}</p>
-        </div>
-        <button class="fav-btn" onclick="toggleFav(${s.id})" style="font-size:24px;">${state.favorites.includes(s.id)?'❤️':'🤍'}</button>
-      </div>
-    </div>
-    <h2 style="margin-top:16px;">Menu</h2>
-    ${s.products.map(p => `
-      <div class="card" onclick="openProduct(${p.id})" style="cursor:pointer;">
-        <div class="product-row">
-          <div class="product-info">
-            <h4>${p.name} ${p.stock === false ? '<span style="color:red;font-size:10px;">(Out of stock)</span>' : ''}</h4>
-            <p style="font-weight:600;color:var(--primary);margin-top:4px;">Rs ${p.price}</p>
-            <p style="font-size:12px;color:var(--text-light);margin-top:4px;">${p.desc}</p>
+      ${featuredHtml}
+      <h2>All Shops</h2>
+      ${list.map(s => `
+        <div class="card">
+          ${s.featured ? `<div class="featured-tag">Featured</div>` : ""}
+          <div class="shop-header" onclick="openShop(${s.id})">
+            <div class="shop-img">${s.emoji}</div>
+            <div class="shop-info" style="flex:1">
+              <h3>${s.name}</h3>
+              <p>${s.category} • ⭐ ${s.rating} • ${s.time} • ${s.distance}</p>
+            </div>
+            <button class="fav-btn" onclick="toggleFav(${s.id}, event)" style="background:none;border:none;font-size:20px;cursor:pointer;">${state.favorites.includes(s.id)?'❤️':'🤍'}</button>
           </div>
-          ${p.stock !== false ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart(${p.id})">Add +</button>` : ''}
-        </div>
-      </div>`).join("")}
-  `;
-}
-
-/* ---------- RENDER: PRODUCT DETAIL (Modal overlay) ---------- */
-function openProduct(pid) {
-  const p = findProduct(pid);
-  if (!p) return;
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <div style="height:180px;background:#f1f5f9;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;">🍽️</div>
-        <h3>${p.name}</h3>
-        <p style="font-size:14px;color:var(--text-light);margin:8px 0 16px;">${p.desc}</p>
-        <div style="font-size:20px;font-weight:700;color:var(--primary);margin-bottom:16px;">Rs ${p.price}</div>
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
-          <span style="font-size:14px;font-weight:600;">Quantity:</span>
-          <div class="qty-box">
-            <button onclick="let q=document.getElementById('prodQty'); if(q.value>1)q.value--;">−</button>
-            <input type="number" id="prodQty" value="1" min="1" style="width:50px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:8px;font-weight:bold;" readonly>
-            <button onclick="document.getElementById('prodQty').value++;">+</button>
+          <div style="margin-top:12px">
+            ${s.products.slice(0,2).map(p => `
+              <div class="product-row">
+                <div class="product-info" onclick="openProduct(${p.id})">
+                  <h4>${p.name} ${p.stock === false ? '<span style="color:red;font-size:10px;">(Out of stock)</span>' : ''}</h4>
+                  <p>Rs ${p.price}</p>
+                </div>
+                ${p.stock !== false ? `<button class="add-btn" onclick="addToCart(${p.id})">Add</button>` : ''}
+              </div>`).join("")}
+            ${s.products.length > 2 ? `<button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="openShop(${s.id})">View all ${s.products.length} items</button>` : ""}
           </div>
+        </div>`).join("") || '<div class="empty"><span class="big">🔎</span>No shops in this category</div>'}
+    `;
+  }
+
+  /* ---------- RENDER: SHOP DETAIL ---------- */
+  function renderShop() {
+    const s = SHOPS.find(x => x.id === state.currentShop);
+    if (!s) return renderHome();
+    return `
+      <button class="add-btn" style="margin-bottom:12px;background:#f1f5f9;color:var(--text);border:1px solid var(--border)" onclick="backToHome()">← Back</button>
+      <div style="height:120px;border-radius:16px;background:${s.banner};margin-bottom:-40px;position:relative;z-index:1;"></div>
+      <div class="card" style="margin-top:-20px;position:relative;z-index:2;padding-top:50px;">
+        <div class="shop-header" style="position:absolute;top:-30px;left:16px;right:16px;">
+          <div class="shop-img" style="width:70px;height:70px;font-size:32px;border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);">${s.emoji}</div>
         </div>
-        <button class="checkout-btn" style="background:var(--primary);" onclick="let q=parseInt(document.getElementById('prodQty').value); addToCart(${p.id}, q); closeModal();">Add to Cart - Rs ${p.price}</button>
-        <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-}
-
-/* ---------- RENDER: SEARCH ---------- */
-function renderSearchResults() {
-  const q = state.searchQuery.toLowerCase().trim();
-  if (!q) return "";
-  let res = [];
-  SHOPS.forEach(s => {
-    if (s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)) res.push({ type: "shop", data: s });
-    s.products.forEach(p => { if (p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) res.push({ type: "product", data: { ...p, shop: s.name } }); });
-  });
-  // Apply filters
-  if (state.searchFilter === "rating") res = res.filter(r => r.type === "shop" ? r.data.rating >= 4.5 : true);
-  if (state.searchFilter === "price_low") res.sort((a,b) => (a.type==='product'?a.data.price:0) - (b.type==='product'?b.data.price:0));
-  if (state.searchFilter === "price_high") res.sort((a,b) => (b.type==='product'?b.data.price:0) - (a.type==='product'?a.data.price:0));
-  
-  if (!res.length) return '<div class="empty"><span class="big">😕</span>No results for "'+state.searchQuery+'"</div>';
-  return res.map(r => r.type === "shop"
-    ? `<div class="card" onclick="openShop(${r.data.id})"><div class="shop-header"><div class="shop-img">${r.data.emoji}</div><div class="shop-info"><h3>${r.data.name}</h3><p>${r.data.category} • ⭐ ${r.data.rating}</p></div></div></div>`
-    : `<div class="card"><div class="product-row"><div class="product-info" onclick="openProduct(${r.data.id})"><h4>${r.data.name}</h4><p>${r.data.shop} • Rs ${r.data.price}</p></div><button class="add-btn" onclick="addToCart(${r.data.id})">Add</button></div></div>`
-  ).join("");
-}
-
-function renderSearch() {
-  return `
-    <h2>Search</h2>
-    <input id="searchInput" class="search-input" placeholder="Search shops or products..." value="${state.searchQuery}" oninput="state.searchQuery=this.value; document.getElementById('searchResults').innerHTML=renderSearchResults()" />
-    <div class="filter-chips">
-      <div class="filter-chip ${state.searchFilter==='all'?'active':''}" onclick="state.searchFilter='all';render()">All</div>
-      <div class="filter-chip ${state.searchFilter==='rating'?'active':''}" onclick="state.searchFilter='rating';render()">⭐ Top Rated</div>
-      <div class="filter-chip ${state.searchFilter==='price_low'?'active':''}" onclick="state.searchFilter='price_low';render()">💰 Price: Low</div>
-      <div class="filter-chip ${state.searchFilter==='price_high'?'active':''}" onclick="state.searchFilter='price_high';render()">💎 Price: High</div>
-    </div>
-    <div id="searchResults">${renderSearchResults()}</div>
-    ${!state.searchQuery ? `<div class="empty"><span class="big">🔍</span>Try "milk", "pizza", "KFC"</div>` : ""}
-  `;
-}
-
-/* ---------- RENDER: CART ---------- */
-function renderCart() {
-  if (!state.cart.length) return '<div class="empty"><span class="big">🛒</span>Your cart is empty</div>';
-  const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
-  return `
-    <h2>Your Cart</h2>
-    <div class="card">
-      ${state.cart.map(i => `
-        <div class="cart-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
-            <h4 style="font-size:14px">${i.name}</h4>
-            <p style="font-size:12px;color:var(--text-light)">${i.shopName} • Rs ${i.price}</p>
+            <h3>${s.name}</h3>
+            <p style="margin-top:4px;">${s.category} • ⭐ ${s.rating} • ${s.distance}</p>
+            <p style="margin-top:4px;font-size:12px;color:var(--accent);font-weight:600;">🕒 ${s.hours}</p>
           </div>
-          <div class="qty-box">
-            <button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button>
+          <button class="fav-btn" onclick="toggleFav(${s.id})" style="font-size:24px;">${state.favorites.includes(s.id)?'❤️':'🤍'}</button>
+        </div>
+      </div>
+      <h2 style="margin-top:16px;">Menu</h2>
+      ${s.products.map(p => `
+        <div class="card" onclick="openProduct(${p.id})" style="cursor:pointer;">
+          <div class="product-row">
+            <div class="product-info">
+              <h4>${p.name} ${p.stock === false ? '<span style="color:red;font-size:10px;">(Out of stock)</span>' : ''}</h4>
+              <p style="font-weight:600;color:var(--primary);margin-top:4px;">Rs ${p.price}</p>
+              <p style="font-size:12px;color:var(--text-light);margin-top:4px;">${p.desc}</p>
+            </div>
+            ${p.stock !== false ? `<button class="add-btn" onclick="event.stopPropagation(); addToCart(${p.id})">Add +</button>` : ''}
           </div>
         </div>`).join("")}
-    </div>
-    <div class="card">
-      <div class="fee-row"><span>Products Subtotal</span><span>Rs ${sub}</span></div>
-      <div class="fee-row"><span>Delivery Fee</span><span>Rs ${df}</span></div>
-      <div class="fee-row"><span>Platform Fee (Service)</span><span>Rs ${pf}</span></div>
-      ${disc>0?`<div class="fee-row" style="color:var(--success)"><span>Discount (${state.coupon})</span><span>-Rs ${disc}</span></div>`:""}
-      <div class="fee-row total"><span>Total Payable</span><span>Rs ${total}</span></div>
-    </div>
-    <div class="card" style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:14px">🎟️ ${state.coupon ? "Coupon: <b>"+state.coupon+"</b>" : "Have a coupon?"}</div>
-      ${state.coupon ? `<button class="add-btn" style="background:var(--danger)" onclick="state.coupon=null;save();render()">Remove</button>` : `<button class="add-btn" onclick="applyCoupon()">Apply</button>`}
-    </div>
-    <button class="checkout-btn" onclick="openCheckout()">Proceed to Checkout</button>
-  `;
-}
-
-/* ---------- CHECKOUT ---------- */
-function openCheckout() {
-  if (state.cart.length === 0) return toast("Cart is empty");
-  if (!state.user) { toast("Please login first"); state.tab = "profile"; render(); return; }
-  const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <h3>Confirm Order</h3>
-        <div style="background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--border);cursor:pointer;" onclick="openLocationModal()">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><b>📍 ${state.address.label || 'Delivery Address'}</b><br><span style="font-size:13px;color:var(--text-light)">${state.address.details || 'Tap to set address'}</span></div>
-            <span style="font-size:20px;">›</span>
-          </div>
-          ${state.address.instructions ? `<p style="font-size:12px;color:var(--accent);margin-top:6px;">📝 ${state.address.instructions}</p>` : ""}
-        </div>
-        
-        <div style="font-size:14px;color:var(--text-light);margin-bottom:8px;">Delivery / Pickup</div>
-        <div class="pay-opt active" id="optDelivery"><input type="radio" name="mode" value="delivery" checked onchange="updateMode()" /><div><b>Delivery</b><div style="font-size:12px;color:var(--text-light)">To your address • Rs ${df}</div></div></div>
-        <div class="pay-opt" id="optPickup"><input type="radio" name="mode" value="pickup" onchange="updateMode()" /><div><b>Pickup</b><div style="font-size:12px;color:var(--text-light)">Collect yourself • Free</div></div></div>
-        
-        <div style="font-size:14px;color:var(--text-light);margin:16px 0 8px;">Payment Method</div>
-        <div class="pay-opt active" id="payCOD"><input type="radio" name="pay" value="cod" checked onchange="updatePay()" /><div class="pay-icon">💵</div><div><b>Cash on Delivery</b></div></div>
-        <div class="pay-opt" id="payEasypaisa"><input type="radio" name="pay" value="easypaisa" onchange="updatePay()" /><div class="pay-icon">📱</div><div><b>Easypaisa</b></div></div>
-        <div class="pay-opt" id="payJazzCash"><input type="radio" name="pay" value="jazzcash" onchange="updatePay()" /><div class="pay-icon">💳</div><div><b>JazzCash</b></div></div>
-        <div class="pay-opt" id="payCard"><input type="radio" name="pay" value="card" onchange="updatePay()" /><div class="pay-icon">🏦</div><div><b>Credit / Debit Card</b></div></div>
-        
-        <div class="fee-breakdown">
-          <div class="fee-row"><span>Products Subtotal</span><span>Rs ${sub}</span></div>
-          <div class="fee-row"><span>Delivery Fee</span><span id="dfLabel">Rs ${df}</span></div>
-          <div class="fee-row"><span>Platform Fee (Service)</span><span>Rs ${pf}</span></div>
-          ${disc > 0 ? `<div class="fee-row" style="color:var(--success)"><span>Discount (${state.coupon})</span><span>-Rs ${disc}</span></div>` : ""}
-          <div class="fee-row total"><span>Total Payable</span><span id="totalLabel">Rs ${total}</span></div>
-        </div>
-        
-        <button class="checkout-btn" style="background:var(--success);margin-top:20px;" onclick="placeOrder()">Place Order</button>
-        <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-  window._mode = "delivery"; window._pay = "cod";
-}
-
-function updateMode() {
-  const m = document.querySelector('input[name="mode"]:checked').value; window._mode = m;
-  document.getElementById("optDelivery").classList.toggle("active", m === "delivery"); document.getElementById("optPickup").classList.toggle("active", m === "pickup");
-  const sub = cartSubtotal(); const df = m === "delivery" ? deliveryFee() : 0; const pf = platformFee(); let disc = discountAmount();
-  if (state.coupon === "FREESHIP" && m === "pickup") disc = 0;
-  document.getElementById("dfLabel").textContent = "Rs " + df;
-  document.getElementById("totalLabel").textContent = "Rs " + Math.max(0, sub + df + pf - disc);
-}
-
-function updatePay() {
-  const p = document.querySelector('input[name="pay"]:checked').value; window._pay = p;
-  ['payCOD','payEasypaisa','payJazzCash','payCard'].forEach(id => {
-    const el = document.getElementById(id); el.classList.toggle("active", el.querySelector('input').value === p);
-  });
-}
-
-function placeOrder() {
-  const mode = window._mode; const pay = window._pay;
-  const sub = cartSubtotal(); const df = mode === "delivery" ? deliveryFee() : 0; const pf = platformFee(); const disc = discountAmount(); const total = Math.max(0, sub + df + pf - disc);
-  const order = { id: "SY" + Date.now().toString().slice(-6), items: [...state.cart], subtotal: sub, delivery: df, platformFee: pf, discount: disc, total: total, mode, pay, address: state.address, status: "Placed", createdAt: new Date().toISOString(), rider: null, timeline: ["Placed"] };
-  state.orders.unshift(order); state.cart = []; state.coupon = null; save(); updateBadge(); closeModal(); state.tab = "orders"; render(); toast("Order placed! #" + order.id);
-  setTimeout(() => simulateRider(order.id), 4000);
-}
-
-/* ---------- ORDER TRACKING & SIMULATION ---------- */
-function simulateRider(orderId) {
-  const o = state.orders.find(x => x.id === orderId); if (!o) return;
-  o.rider = { name: "Ali Khan", phone: "+92 300 1234567", rating: 4.8, bike: "Honda 125" };
-  o.timeline.push("Accepted by Store"); save(); render();
-  setTimeout(() => { o.timeline.push("Rider Assigned"); save(); render(); }, 3000);
-  setTimeout(() => { o.timeline.push("Picked Up"); save(); render(); }, 6000);
-  setTimeout(() => { o.timeline.push("On the Way"); save(); render(); }, 9000);
-  setTimeout(() => { o.status = "Delivered"; o.timeline.push("Delivered"); save(); render(); }, 15000);
-}
-
-function openTracking(orderId) {
-  const o = state.orders.find(x => x.id === orderId); if (!o) return;
-  const steps = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"];
-  const currentIdx = steps.indexOf(o.timeline[o.timeline.length - 1]);
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <h3>Track Order #${o.id}</h3>
-        <div class="mock-map">
-          <div class="map-pin customer-pin">🏠</div>
-          <div class="map-pin rider-pin">🛵</div>
-        </div>
-        ${o.rider ? `<div style="background:#f0fdf4;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-          <div><b>${o.rider.name}</b><br><span style="font-size:12px;color:var(--text-light)">${o.rider.bike} • ⭐ ${o.rider.rating}</span></div>
-          <div style="display:flex;gap:8px;">
-            <button class="add-btn" style="background:var(--success)" onclick="toast('Calling rider...')">📞 Call</button>
-            <button class="add-btn" style="background:var(--primary)" onclick="openChat(${o.id})">💬 Chat</button>
-          </div>
-        </div>` : ""}
-        <div class="timeline">
-          ${steps.map((step, i) => {
-            let cls = "timeline-step"; if (i < currentIdx) cls += " done"; else if (i === currentIdx) cls += " active";
-            return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
-          }).join("")}
-        </div>
-        <button class="checkout-btn" style="background:#f1f5f9;color:var(--text);margin-top:20px;" onclick="closeModal()">Close</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-}
-
-/* ---------- CHAT ---------- */
-function openChat(orderId) {
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet" style="height:80vh;display:flex;flex-direction:column;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <h3 style="margin:0;">Chat with Rider</h3>
-          <button class="add-btn" style="background:#f1f5f9;color:var(--text)" onclick="closeModal()">✕</button>
-        </div>
-        <div class="chat-box" id="chatBox">
-          <div class="chat-msg other">Hello! I am on my way to pick up your order.</div>
-          <div class="chat-msg me">Okay, please hurry up.</div>
-          <div class="chat-msg other">I will be there in 10 minutes.</div>
-        </div>
-        <div class="chat-input">
-          <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendChat()" />
-          <button onclick="sendChat()">Send</button>
-        </div>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-  setTimeout(() => { const cb = document.getElementById('chatBox'); if(cb) cb.scrollTop = cb.scrollHeight; }, 100);
-}
-function sendChat() {
-  const inp = document.getElementById('chatInput'); const val = inp.value.trim(); if(!val) return;
-  const cb = document.getElementById('chatBox');
-  cb.innerHTML += `<div class="chat-msg me">${val}</div>`; inp.value = ''; cb.scrollTop = cb.scrollHeight;
-  setTimeout(() => { cb.innerHTML += `<div class="chat-msg other">Okay, noted!</div>`; cb.scrollTop = cb.scrollHeight; }, 1000);
-}
-
-/* ---------- RATINGS & REVIEWS ---------- */
-function openRating(orderId) {
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <h3>Rate your experience</h3>
-        <p style="text-align:center;margin-bottom:16px;">How was the store and rider?</p>
-        <div style="text-align:center;margin-bottom:16px;"><b>Store Rating</b></div>
-        <div class="stars" id="storeStars">${[1,2,3,4,5].map(i => `<span class="star" onclick="setStar('store',${i})">★</span>`).join("")}</div>
-        <div style="text-align:center;margin-bottom:16px;"><b>Rider Rating</b></div>
-        <div class="stars" id="riderStars">${[1,2,3,4,5].map(i => `<span class="star" onclick="setStar('rider',${i})">★</span>`).join("")}</div>
-        <textarea placeholder="Write a review (optional)..." rows="3" style="width:100%;padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:16px;font-family:inherit;"></textarea>
-        <button class="checkout-btn" style="background:var(--accent);" onclick="submitRating()">Submit Rating</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-  window._storeRating = 0; window._riderRating = 0;
-}
-function setStar(type, val) {
-  if (type === 'store') { window._storeRating = val; document.querySelectorAll('#storeStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
-  else { window._riderRating = val; document.querySelectorAll('#riderStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
-}
-function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both store and rider"); closeModal(); toast("Thanks for your feedback! ⭐"); }
-
-/* ---------- LOCATION / MAP PIN ---------- */
-function openLocationModal() {
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <h3>Delivery Address</h3>
-        <div class="mock-map" style="height:140px;">
-          <div class="map-pin" style="left:50%;top:50%;transform:translate(-50%,-50%);">📍</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;">
-          <div class="filter-chip ${state.address.label==='Home'?'active':''}" onclick="setAddressLabel('Home')">🏠 Home</div>
-          <div class="filter-chip ${state.address.label==='Office'?'active':''}" onclick="setAddressLabel('Office')">🏢 Office</div>
-          <div class="filter-chip ${state.address.label==='Other'?'active':''}" onclick="setAddressLabel('Other')">📍 Other</div>
-        </div>
-        <input id="addrDetails" placeholder="House #, Street, Area..." value="${state.address.details || ''}" />
-        <input id="addrInstructions" placeholder="Delivery instructions (e.g. call before arriving)" value="${state.address.instructions || ''}" />
-        <button class="checkout-btn" style="background:var(--primary);" onclick="saveAddress()">Save Address</button>
-        <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-}
-function setAddressLabel(label) { state.address.label = label; openLocationModal(); }
-function saveAddress() {
-  const details = document.getElementById('addrDetails').value.trim();
-  const instructions = document.getElementById('addrInstructions').value.trim();
-  if (!details) return toast("Please enter address details");
-  state.address.details = details; state.address.instructions = instructions; save(); closeModal(); toast("Address saved ✅"); render();
-}
-
-/* ---------- AUTH (Splash, Login, OTP, Signup) ---------- */
-function openAuth() {
-  const html = `
-    <div class="overlay" onclick="if(event.target===this)closeModal()">
-      <div class="sheet">
-        <h3 id="authTitle">Welcome to SYEDGO</h3>
-        <div id="authStep1">
-          <input id="aPhone" placeholder="Phone number (e.g. 03001234567)" type="tel" />
-          <button class="checkout-btn" style="background:var(--primary);" onclick="sendOTP()">Send OTP</button>
-          <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">Demo: Any number works. OTP is 1234</p>
-        </div>
-        <div id="authStep2" class="hidden">
-          <p style="text-align:center;margin-bottom:16px;">Enter the 4-digit code sent to <b id="phoneDisplay"></b></p>
-          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
-            ${[1,2,3,4].map(i => `<input type="number" id="otp${i}" maxlength="1" style="width:50px;height:50px;text-align:center;font-size:20px;border:2px solid var(--border);border-radius:12px;" oninput="if(this.value.length===1) document.getElementById('otp${i+1}')?.focus()" />`).join("")}
-          </div>
-          <button class="checkout-btn" style="background:var(--success);" onclick="verifyOTP()">Verify & Login</button>
-          <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="backToStep1()">← Change Number</button>
-        </div>
-        <div id="authStep3" class="hidden">
-          <p style="text-align:center;margin-bottom:16px;">Complete your profile</p>
-          <input id="aName" placeholder="Full Name" />
-          <input id="aEmail" placeholder="Email Address" type="email" />
-          <button class="checkout-btn" style="background:var(--primary);" onclick="completeSignup()">Create Account</button>
-        </div>
-        <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
-      </div>
-    </div>`;
-  document.getElementById("modalRoot").innerHTML = html;
-}
-
-function sendOTP() {
-  const phone = document.getElementById('aPhone').value.trim();
-  if (!phone) return toast("Enter phone number");
-  document.getElementById('phoneDisplay').textContent = phone;
-  document.getElementById('authStep1').classList.add('hidden');
-  document.getElementById('authStep2').classList.remove('hidden');
-  window._phone = phone;
-  toast("OTP sent! (Use 1234)");
-}
-
-function verifyOTP() {
-  const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
-  if (otp !== '1234') return toast("Invalid OTP. Use 1234");
-  document.getElementById('authStep2').classList.add('hidden');
-  document.getElementById('authStep3').classList.remove('hidden');
-}
-
-function backToStep1() {
-  document.getElementById('authStep2').classList.add('hidden');
-  document.getElementById('authStep1').classList.remove('hidden');
-}
-
-function completeSignup() {
-  const name = document.getElementById('aName').value.trim();
-  const email = document.getElementById('aEmail').value.trim();
-  if (!name) return toast("Enter your name");
-  state.user = { name, phone: window._phone, email };
-  save(); closeModal(); render(); toast("Welcome, " + name);
-}
-
-function logout() { if (!confirm("Logout?")) return; state.user = null; save(); render(); toast("Logged out"); }
-
-/* ---------- RENDER: ORDERS ---------- */
-function renderOrders() {
-  if (!state.orders.length) return '<div class="empty"><span class="big">📦</span>No orders yet</div>';
-  return `
-    <h2>My Orders</h2>
-    ${state.orders.map(o => `
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <b>#${o.id}</b>
-          <span class="status-chip ${o.status==='Placed'?'pending':''} ${o.status==='Delivered'?'delivered':''}">${o.status}</span>
-        </div>
-        <p style="font-size:12px;color:var(--text-light);margin-bottom:8px">${new Date(o.createdAt).toLocaleString()}</p>
-        ${o.items.map(i => `<div style="font-size:13px;display:flex;justify-content:space-between;padding:3px 0"><span>${i.name} × ${i.qty}</span><span>Rs ${i.price*i.qty}</span></div>`).join("")}
-        <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:13px;">
-          <div style="display:flex;justify-content:space-between;color:var(--text-light)"><span>Subtotal</span><span>Rs ${o.subtotal}</span></div>
-          <div style="display:flex;justify-content:space-between;color:var(--text-light)"><span>Delivery + Platform</span><span>Rs ${o.delivery + o.platformFee}</span></div>
-          <div style="display:flex;justify-content:space-between;font-weight:bold;color:var(--text);margin-top:4px;"><span>Total Paid</span><span>Rs ${o.total}</span></div>
-        </div>
-        <div style="font-size:12px;color:var(--text-light);margin-top:8px">💳 ${o.pay.toUpperCase()} • ${o.mode==='delivery'?'Delivery':'Pickup'}</div>
-        
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-          <button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track</button>
-          ${o.status !== 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
-          ${o.status === 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
-          <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="reorder('${o.id}')">🔄 Reorder</button>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
-          <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Support ticket created')">🎧 Support</button>
-          <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Refund request sent')">↩️ Refund</button>
-        </div>
-      </div>`).join("")}
-  `;
-}
-
-function reorder(orderId) {
-  const o = state.orders.find(x => x.id === orderId); if(!o) return;
-  o.items.forEach(item => { const ex = state.cart.find(i => i.id === item.id); if(ex) ex.qty += item.qty; else state.cart.push({...item}); });
-  save(); updateBadge(); toast("Items added to cart!"); state.tab = "cart"; render();
-}
-
-/* ---------- RENDER: PROFILE ---------- */
-function renderProfile() {
-  if (!state.user) {
-    return `
-      <div class="card login-card" style="text-align:center;padding:40px 20px;">
-        <div style="font-size:64px;margin-bottom:16px;">👤</div>
-        <h3 style="margin-bottom:8px;">Welcome to SYEDGO</h3>
-        <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login to order and track your deliveries</p>
-        <button class="checkout-btn" style="background:var(--primary);" onclick="openAuth()">Login / Signup</button>
-      </div>
-      <div class="card">
-        <div class="profile-row" onclick="toast('Coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Coming soon')"><span>🎧 Support</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
-      </div>`;
+    `;
   }
-  return `
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:16px">
-        <div class="shop-img" style="border-radius:50%;width:60px;height:60px;font-size:28px;background:var(--primary);color:#fff;">👤</div>
-        <div>
-          <h3>${state.user.name}</h3>
-          <p style="font-size:13px;color:var(--text-light)">${state.user.phone} ${state.user.email ? '• ' + state.user.email : ''}</p>
+
+  /* ---------- RENDER: PRODUCT DETAIL (Modal overlay) ---------- */
+  function openProduct(pid) {
+    const p = findProduct(pid);
+    if (!p) return;
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <div style="height:180px;background:#f1f5f9;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;">🍽️</div>
+          <h3>${p.name}</h3>
+          <p style="font-size:14px;color:var(--text-light);margin:8px 0 16px;">${p.desc}</p>
+          <div style="font-size:20px;font-weight:700;color:var(--primary);margin-bottom:16px;">Rs ${p.price}</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;">
+            <span style="font-size:14px;font-weight:600;">Quantity:</span>
+            <div class="qty-box">
+              <button onclick="let q=document.getElementById('prodQty'); if(q.value>1)q.value--;">−</button>
+              <input type="number" id="prodQty" value="1" min="1" style="width:50px;text-align:center;border:1px solid var(--border);border-radius:8px;padding:8px;font-weight:bold;" readonly>
+              <button onclick="document.getElementById('prodQty').value++;">+</button>
+            </div>
+          </div>
+          <button class="checkout-btn" style="background:var(--primary);" onclick="let q=parseInt(document.getElementById('prodQty').value); addToCart(${p.id}, q); closeModal();">Add to Cart - Rs ${p.price}</button>
+          <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+  }
+
+  /* ---------- RENDER: SEARCH ---------- */
+  function renderSearchResults() {
+    const q = state.searchQuery.toLowerCase().trim();
+    if (!q) return "";
+    let res = [];
+    SHOPS.forEach(s => {
+      if (s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)) res.push({ type: "shop", data: s });
+      s.products.forEach(p => { if (p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)) res.push({ type: "product", data: { ...p, shop: s.name } }); });
+    });
+    if (state.searchFilter === "rating") res = res.filter(r => r.type === "shop" ? r.data.rating >= 4.5 : true);
+    if (state.searchFilter === "price_low") res.sort((a,b) => (a.type==='product'?a.data.price:0) - (b.type==='product'?b.data.price:0));
+    if (state.searchFilter === "price_high") res.sort((a,b) => (b.type==='product'?b.data.price:0) - (a.type==='product'?a.data.price:0));
+    
+    if (!res.length) return '<div class="empty"><span class="big">😕</span>No results for "'+state.searchQuery+'"</div>';
+    return res.map(r => r.type === "shop"
+      ? `<div class="card" onclick="openShop(${r.data.id})"><div class="shop-header"><div class="shop-img">${r.data.emoji}</div><div class="shop-info"><h3>${r.data.name}</h3><p>${r.data.category} • ⭐ ${r.data.rating}</p></div></div></div>`
+      : `<div class="card"><div class="product-row"><div class="product-info" onclick="openProduct(${r.data.id})"><h4>${r.data.name}</h4><p>${r.data.shop} • Rs ${r.data.price}</p></div><button class="add-btn" onclick="addToCart(${r.data.id})">Add</button></div></div>`
+    ).join("");
+  }
+
+  function renderSearch() {
+    return `
+      <h2>Search</h2>
+      <input id="searchInput" class="search-input" placeholder="Search shops or products..." value="${state.searchQuery}" oninput="state.searchQuery=this.value; document.getElementById('searchResults').innerHTML=renderSearchResults()" />
+      <div class="filter-chips">
+        <div class="filter-chip ${state.searchFilter==='all'?'active':''}" onclick="state.searchFilter='all';render()">All</div>
+        <div class="filter-chip ${state.searchFilter==='rating'?'active':''}" onclick="state.searchFilter='rating';render()">⭐ Top Rated</div>
+        <div class="filter-chip ${state.searchFilter==='price_low'?'active':''}" onclick="state.searchFilter='price_low';render()">💰 Price: Low</div>
+        <div class="filter-chip ${state.searchFilter==='price_high'?'active':''}" onclick="state.searchFilter='price_high';render()">💎 Price: High</div>
+      </div>
+      <div id="searchResults">${renderSearchResults()}</div>
+      ${!state.searchQuery ? `<div class="empty"><span class="big">🔍</span>Try "milk", "pizza", "KFC"</div>` : ""}
+    `;
+  }
+
+  /* ---------- RENDER: CART ---------- */
+  function renderCart() {
+    if (!state.cart.length) return '<div class="empty"><span class="big">🛒</span>Your cart is empty</div>';
+    const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
+    return `
+      <h2>Your Cart</h2>
+      <div class="card">
+        ${state.cart.map(i => `
+          <div class="cart-item" style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+            <div>
+              <h4 style="font-size:14px">${i.name}</h4>
+              <p style="font-size:12px;color:var(--text-light)">${i.shopName} • Rs ${i.price}</p>
+            </div>
+            <div class="qty-box">
+              <button onclick="changeQty(${i.id},-1)">−</button><span>${i.qty}</span><button onclick="changeQty(${i.id},1)">+</button>
+            </div>
+          </div>`).join("")}
+      </div>
+      <div class="card">
+        <div class="fee-row"><span>Products Subtotal</span><span>Rs ${sub}</span></div>
+        <div class="fee-row"><span>Delivery Fee</span><span>Rs ${df}</span></div>
+        <div class="fee-row"><span>Platform Fee (Service)</span><span>Rs ${pf}</span></div>
+        ${disc>0?`<div class="fee-row" style="color:var(--success)"><span>Discount (${state.coupon})</span><span>-Rs ${disc}</span></div>`:""}
+        <div class="fee-row total"><span>Total Payable</span><span>Rs ${total}</span></div>
+      </div>
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:14px">🎟️ ${state.coupon ? "Coupon: <b>"+state.coupon+"</b>" : "Have a coupon?"}</div>
+        ${state.coupon ? `<button class="add-btn" style="background:var(--danger)" onclick="state.coupon=null;save();render()">Remove</button>` : `<button class="add-btn" onclick="applyCoupon()">Apply</button>`}
+      </div>
+      <button class="checkout-btn" onclick="openCheckout()">Proceed to Checkout</button>
+    `;
+  }
+
+  /* ---------- CHECKOUT ---------- */
+  function openCheckout() {
+    if (state.cart.length === 0) return toast("Cart is empty");
+    if (!state.user) { toast("Please login first"); state.tab = "profile"; render(); return; }
+    const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <h3>Confirm Order</h3>
+          <div style="background:#f8fafc;border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid var(--border);cursor:pointer;" onclick="openLocationModal()">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><b>📍 ${state.address.label || 'Delivery Address'}</b><br><span style="font-size:13px;color:var(--text-light)">${state.address.details || 'Tap to set address'}</span></div>
+              <span style="font-size:20px;">›</span>
+            </div>
+            ${state.address.instructions ? `<p style="font-size:12px;color:var(--accent);margin-top:6px;">📝 ${state.address.instructions}</p>` : ""}
+          </div>
+          
+          <div style="font-size:14px;color:var(--text-light);margin-bottom:8px;">Delivery / Pickup</div>
+          <div class="pay-opt active" id="optDelivery"><input type="radio" name="mode" value="delivery" checked onchange="updateMode()" /><div><b>Delivery</b><div style="font-size:12px;color:var(--text-light)">To your address • Rs ${df}</div></div></div>
+          <div class="pay-opt" id="optPickup"><input type="radio" name="mode" value="pickup" onchange="updateMode()" /><div><b>Pickup</b><div style="font-size:12px;color:var(--text-light)">Collect yourself • Free</div></div></div>
+          
+          <div style="font-size:14px;color:var(--text-light);margin:16px 0 8px;">Payment Method</div>
+          <div class="pay-opt active" id="payCOD"><input type="radio" name="pay" value="cod" checked onchange="updatePay()" /><div class="pay-icon">💵</div><div><b>Cash on Delivery</b></div></div>
+          <div class="pay-opt" id="payEasypaisa"><input type="radio" name="pay" value="easypaisa" onchange="updatePay()" /><div class="pay-icon">📱</div><div><b>Easypaisa</b></div></div>
+          <div class="pay-opt" id="payJazzCash"><input type="radio" name="pay" value="jazzcash" onchange="updatePay()" /><div class="pay-icon">💳</div><div><b>JazzCash</b></div></div>
+          <div class="pay-opt" id="payCard"><input type="radio" name="pay" value="card" onchange="updatePay()" /><div class="pay-icon">🏦</div><div><b>Credit / Debit Card</b></div></div>
+          
+          <div class="fee-breakdown">
+            <div class="fee-row"><span>Products Subtotal</span><span>Rs ${sub}</span></div>
+            <div class="fee-row"><span>Delivery Fee</span><span id="dfLabel">Rs ${df}</span></div>
+            <div class="fee-row"><span>Platform Fee (Service)</span><span>Rs ${pf}</span></div>
+            ${disc > 0 ? `<div class="fee-row" style="color:var(--success)"><span>Discount (${state.coupon})</span><span>-Rs ${disc}</span></div>` : ""}
+            <div class="fee-row total"><span>Total Payable</span><span id="totalLabel">Rs ${total}</span></div>
+          </div>
+          
+          <button class="checkout-btn" style="background:var(--success);margin-top:20px;" onclick="placeOrder()">Place Order</button>
+          <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+    window._mode = "delivery"; window._pay = "cod";
+  }
+
+  function updateMode() {
+    const m = document.querySelector('input[name="mode"]:checked').value; window._mode = m;
+    document.getElementById("optDelivery").classList.toggle("active", m === "delivery"); document.getElementById("optPickup").classList.toggle("active", m === "pickup");
+    const sub = cartSubtotal(); const df = m === "delivery" ? deliveryFee() : 0; const pf = platformFee(); let disc = discountAmount();
+    if (state.coupon === "FREESHIP" && m === "pickup") disc = 0;
+    document.getElementById("dfLabel").textContent = "Rs " + df;
+    document.getElementById("totalLabel").textContent = "Rs " + Math.max(0, sub + df + pf - disc);
+  }
+
+  function updatePay() {
+    const p = document.querySelector('input[name="pay"]:checked').value; window._pay = p;
+    ['payCOD','payEasypaisa','payJazzCash','payCard'].forEach(id => {
+      const el = document.getElementById(id); el.classList.toggle("active", el.querySelector('input').value === p);
+    });
+  }
+
+  function placeOrder() {
+    const mode = window._mode; const pay = window._pay;
+    const sub = cartSubtotal(); const df = mode === "delivery" ? deliveryFee() : 0; const pf = platformFee(); const disc = discountAmount(); const total = Math.max(0, sub + df + pf - disc);
+    const order = { id: "SY" + Date.now().toString().slice(-6), items: [...state.cart], subtotal: sub, delivery: df, platformFee: pf, discount: disc, total: total, mode, pay, address: state.address, status: "Placed", createdAt: new Date().toISOString(), rider: null, timeline: ["Placed"] };
+    state.orders.unshift(order); state.cart = []; state.coupon = null; save(); updateBadge(); closeModal(); state.tab = "orders"; render(); toast("Order placed! #" + order.id);
+    setTimeout(() => simulateRider(order.id), 4000);
+  }
+
+  /* ---------- ORDER TRACKING & SIMULATION ---------- */
+  function simulateRider(orderId) {
+    const o = state.orders.find(x => x.id === orderId); if (!o) return;
+    o.rider = { name: "Ali Khan", phone: "+92 300 1234567", rating: 4.8, bike: "Honda 125" };
+    o.timeline.push("Accepted by Store"); save(); render();
+    setTimeout(() => { o.timeline.push("Rider Assigned"); save(); render(); }, 3000);
+    setTimeout(() => { o.timeline.push("Picked Up"); save(); render(); }, 6000);
+    setTimeout(() => { o.timeline.push("On the Way"); save(); render(); }, 9000);
+    setTimeout(() => { o.status = "Delivered"; o.timeline.push("Delivered"); save(); render(); }, 15000);
+  }
+
+  function openTracking(orderId) {
+    const o = state.orders.find(x => x.id === orderId); if (!o) return;
+    const steps = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"];
+    const currentIdx = steps.indexOf(o.timeline[o.timeline.length - 1]);
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <h3>Track Order #${o.id}</h3>
+          <div class="mock-map">
+            <div class="map-pin customer-pin">🏠</div>
+            <div class="map-pin rider-pin">🛵</div>
+          </div>
+          ${o.rider ? `<div style="background:#f0fdf4;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+            <div><b>${o.rider.name}</b><br><span style="font-size:12px;color:var(--text-light)">${o.rider.bike} • ⭐ ${o.rider.rating}</span></div>
+            <div style="display:flex;gap:8px;">
+              <button class="add-btn" style="background:var(--success)" onclick="toast('Calling rider...')">📞 Call</button>
+              <button class="add-btn" style="background:var(--primary)" onclick="openChat(${o.id})">💬 Chat</button>
+            </div>
+          </div>` : ""}
+          <div class="timeline">
+            ${steps.map((step, i) => {
+              let cls = "timeline-step"; if (i < currentIdx) cls += " done"; else if (i === currentIdx) cls += " active";
+              return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
+            }).join("")}
+          </div>
+          <button class="checkout-btn" style="background:#f1f5f9;color:var(--text);margin-top:20px;" onclick="closeModal()">Close</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+  }
+
+  /* ---------- CHAT ---------- */
+  function openChat(orderId) {
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet" style="height:80vh;display:flex;flex-direction:column;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin:0;">Chat with Rider</h3>
+            <button class="add-btn" style="background:#f1f5f9;color:var(--text)" onclick="closeModal()">✕</button>
+          </div>
+          <div class="chat-box" id="chatBox">
+            <div class="chat-msg other">Hello! I am on my way to pick up your order.</div>
+            <div class="chat-msg me">Okay, please hurry up.</div>
+            <div class="chat-msg other">I will be there in 10 minutes.</div>
+          </div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendChat()" />
+            <button onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+    setTimeout(() => { const cb = document.getElementById('chatBox'); if(cb) cb.scrollTop = cb.scrollHeight; }, 100);
+  }
+  function sendChat() {
+    const inp = document.getElementById('chatInput'); const val = inp.value.trim(); if(!val) return;
+    const cb = document.getElementById('chatBox');
+    cb.innerHTML += `<div class="chat-msg me">${val}</div>`; inp.value = ''; cb.scrollTop = cb.scrollHeight;
+    setTimeout(() => { cb.innerHTML += `<div class="chat-msg other">Okay, noted!</div>`; cb.scrollTop = cb.scrollHeight; }, 1000);
+  }
+
+  /* ---------- RATINGS & REVIEWS ---------- */
+  function openRating(orderId) {
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <h3>Rate your experience</h3>
+          <p style="text-align:center;margin-bottom:16px;">How was the store and rider?</p>
+          <div style="text-align:center;margin-bottom:16px;"><b>Store Rating</b></div>
+          <div class="stars" id="storeStars">${[1,2,3,4,5].map(i => `<span class="star" onclick="setStar('store',${i})">★</span>`).join("")}</div>
+          <div style="text-align:center;margin-bottom:16px;"><b>Rider Rating</b></div>
+          <div class="stars" id="riderStars">${[1,2,3,4,5].map(i => `<span class="star" onclick="setStar('rider',${i})">★</span>`).join("")}</div>
+          <textarea placeholder="Write a review (optional)..." rows="3" style="width:100%;padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:16px;font-family:inherit;"></textarea>
+          <button class="checkout-btn" style="background:var(--accent);" onclick="submitRating()">Submit Rating</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+    window._storeRating = 0; window._riderRating = 0;
+  }
+  function setStar(type, val) {
+    if (type === 'store') { window._storeRating = val; document.querySelectorAll('#storeStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
+    else { window._riderRating = val; document.querySelectorAll('#riderStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
+  }
+  function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both store and rider"); closeModal(); toast("Thanks for your feedback! ⭐"); }
+
+  /* ---------- LOCATION / MAP PIN ---------- */
+  function openLocationModal() {
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <h3>Delivery Address</h3>
+          <div class="mock-map" style="height:140px;">
+            <div class="map-pin" style="left:50%;top:50%;transform:translate(-50%,-50%);">📍</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <div class="filter-chip ${state.address.label==='Home'?'active':''}" onclick="setAddressLabel('Home')">🏠 Home</div>
+            <div class="filter-chip ${state.address.label==='Office'?'active':''}" onclick="setAddressLabel('Office')">🏢 Office</div>
+            <div class="filter-chip ${state.address.label==='Other'?'active':''}" onclick="setAddressLabel('Other')">📍 Other</div>
+          </div>
+          <input id="addrDetails" placeholder="House #, Street, Area..." value="${state.address.details || ''}" />
+          <input id="addrInstructions" placeholder="Delivery instructions (e.g. call before arriving)" value="${state.address.instructions || ''}" />
+          <button class="checkout-btn" style="background:var(--primary);" onclick="saveAddress()">Save Address</button>
+          <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+  }
+  function setAddressLabel(label) { state.address.label = label; openLocationModal(); }
+  function saveAddress() {
+    const details = document.getElementById('addrDetails').value.trim();
+    const instructions = document.getElementById('addrInstructions').value.trim();
+    if (!details) return toast("Please enter address details");
+    state.address.details = details; state.address.instructions = instructions; save(); closeModal(); toast("Address saved ✅"); render();
+  }
+
+  /* ---------- AUTH (Splash, Login, OTP, Signup) ---------- */
+  function openAuth() {
+    const html = `
+      <div class="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="sheet">
+          <h3 id="authTitle">Welcome to SYEDGO</h3>
+          <div id="authStep1">
+            <input id="aPhone" placeholder="Phone number (e.g. 03001234567)" type="tel" />
+            <button class="checkout-btn" style="background:var(--primary);" onclick="sendOTP()">Send OTP</button>
+            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">Demo: Any number works. OTP is 1234</p>
+          </div>
+          <div id="authStep2" class="hidden">
+            <p style="text-align:center;margin-bottom:16px;">Enter the 4-digit code sent to <b id="phoneDisplay"></b></p>
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+              ${[1,2,3,4].map(i => `<input type="number" id="otp${i}" maxlength="1" style="width:50px;height:50px;text-align:center;font-size:20px;border:2px solid var(--border);border-radius:12px;" oninput="if(this.value.length===1) document.getElementById('otp${i+1}')?.focus()" />`).join("")}
+            </div>
+            <button class="checkout-btn" style="background:var(--success);" onclick="verifyOTP()">Verify & Login</button>
+            <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="backToStep1()">← Change Number</button>
+          </div>
+          <div id="authStep3" class="hidden">
+            <p style="text-align:center;margin-bottom:16px;">Complete your profile</p>
+            <input id="aName" placeholder="Full Name" />
+            <input id="aEmail" placeholder="Email Address" type="email" />
+            <button class="checkout-btn" style="background:var(--primary);" onclick="completeSignup()">Create Account</button>
+          </div>
+          <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+  }
+
+  function sendOTP() {
+    const phone = document.getElementById('aPhone').value.trim();
+    if (!phone) return toast("Enter phone number");
+    document.getElementById('phoneDisplay').textContent = phone;
+    document.getElementById('authStep1').classList.add('hidden');
+    document.getElementById('authStep2').classList.remove('hidden');
+    window._phone = phone;
+    toast("OTP sent! (Use 1234)");
+  }
+
+  function verifyOTP() {
+    const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
+    if (otp !== '1234') return toast("Invalid OTP. Use 1234");
+    document.getElementById('authStep2').classList.add('hidden');
+    document.getElementById('authStep3').classList.remove('hidden');
+  }
+
+  function backToStep1() {
+    document.getElementById('authStep2').classList.add('hidden');
+    document.getElementById('authStep1').classList.remove('hidden');
+  }
+
+  function completeSignup() {
+    const name = document.getElementById('aName').value.trim();
+    const email = document.getElementById('aEmail').value.trim();
+    if (!name) return toast("Enter your name");
+    state.user = { name, phone: window._phone, email };
+    save(); 
+    // Load existing data from Firebase
+    loadFromFirebase(window._phone);
+    closeModal(); render(); toast("Welcome, " + name);
+  }
+
+  function logout() { if (!confirm("Logout?")) return; state.user = null; saveLocal(); render(); toast("Logged out"); }
+
+  /* ---------- RENDER: ORDERS ---------- */
+  function renderOrders() {
+    if (!state.orders.length) return '<div class="empty"><span class="big">📦</span>No orders yet</div>';
+    return `
+      <h2>My Orders</h2>
+      ${state.orders.map(o => `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <b>#${o.id}</b>
+            <span class="status-chip ${o.status==='Placed'?'pending':''} ${o.status==='Delivered'?'delivered':''}">${o.status}</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-light);margin-bottom:8px">${new Date(o.createdAt).toLocaleString()}</p>
+          ${o.items.map(i => `<div style="font-size:13px;display:flex;justify-content:space-between;padding:3px 0"><span>${i.name} × ${i.qty}</span><span>Rs ${i.price*i.qty}</span></div>`).join("")}
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;color:var(--text-light)"><span>Subtotal</span><span>Rs ${o.subtotal}</span></div>
+            <div style="display:flex;justify-content:space-between;color:var(--text-light)"><span>Delivery + Platform</span><span>Rs ${o.delivery + o.platformFee}</span></div>
+            <div style="display:flex;justify-content:space-between;font-weight:bold;color:var(--text);margin-top:4px;"><span>Total Paid</span><span>Rs ${o.total}</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:8px">💳 ${o.pay.toUpperCase()} • ${o.mode==='delivery'?'Delivery':'Pickup'}</div>
+          
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track</button>
+            ${o.status !== 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
+            ${o.status === 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
+            <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="reorder('${o.id}')">🔄 Reorder</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Support ticket created')">🎧 Support</button>
+            <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Refund request sent')">↩️ Refund</button>
+          </div>
+        </div>`).join("")}
+    `;
+  }
+
+  function reorder(orderId) {
+    const o = state.orders.find(x => x.id === orderId); if(!o) return;
+    o.items.forEach(item => { const ex = state.cart.find(i => i.id === item.id); if(ex) ex.qty += item.qty; else state.cart.push({...item}); });
+    save(); updateBadge(); toast("Items added to cart!"); state.tab = "cart"; render();
+  }
+
+  /* ---------- RENDER: PROFILE ---------- */
+  function renderProfile() {
+    if (!state.user) {
+      return `
+        <div class="card login-card" style="text-align:center;padding:40px 20px;">
+          <div style="font-size:64px;margin-bottom:16px;">👤</div>
+          <h3 style="margin-bottom:8px;">Welcome to SYEDGO</h3>
+          <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login to order and track your deliveries</p>
+          <button class="checkout-btn" style="background:var(--primary);" onclick="openAuth()">Login / Signup</button>
+        </div>
+        <div class="card">
+          <div class="profile-row" onclick="toast('Coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
+          <div class="profile-row" onclick="toast('Coming soon')"><span>🎧 Support</span><span>›</span></div>
+          <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
+        </div>`;
+    }
+    return `
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div class="shop-img" style="border-radius:50%;width:60px;height:60px;font-size:28px;background:var(--primary);color:#fff;">👤</div>
+          <div>
+            <h3>${state.user.name}</h3>
+            <p style="font-size:13px;color:var(--text-light)">${state.user.phone} ${state.user.email ? '• ' + state.user.email : ''}</p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="card">
-      <div class="profile-row" onclick="openLocationModal()"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
-      <div class="profile-row" onclick="state.tab='orders';render()"><span>📦 My Orders</span><span>›</span></div>
-      <div class="profile-row" onclick="toast('Payment methods coming soon')"><span>💳 Payment Methods</span><span>›</span></div>
-      <div class="profile-row" onclick="toast('Coupons coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
-      <div class="profile-row" onclick="state.tab='home';state.category='all';state.currentShop=null;render()"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
-      <div class="profile-row" onclick="toast('Support ticket created')"><span>🎧 Help & Support</span><span>›</span></div>
-      <div class="profile-row" onclick="toast('Refund request sent')"><span>↩️ Refunds</span><span>›</span></div>
-      <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
-    </div>
-    <button class="checkout-btn" style="background:var(--danger)" onclick="logout()">Logout</button>
-  `;
-}
+      <div class="card">
+        <div class="profile-row" onclick="openLocationModal()"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
+        <div class="profile-row" onclick="state.tab='orders';render()"><span>📦 My Orders</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('Payment methods coming soon')"><span>💳 Payment Methods</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('Coupons coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
+        <div class="profile-row" onclick="state.tab='home';state.category='all';state.currentShop=null;render()"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('Support ticket created')"><span>🎧 Help & Support</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('Refund request sent')"><span>↩️ Refunds</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
+      </div>
+      <button class="checkout-btn" style="background:var(--danger)" onclick="logout()">Logout</button>
+    `;
+  }
 
-/* ---------- MAIN RENDER & ROUTING ---------- */
-function render() {
-  const app = document.getElementById("app");
-  let html = "";
-  if (state.currentShop) html = renderShop();
-  else if (state.tab === "home") html = renderHome();
-  else if (state.tab === "search") html = renderSearch();
-  else if (state.tab === "cart") html = renderCart();
-  else if (state.tab === "orders") html = renderOrders();
-  else if (state.tab === "profile") html = renderProfile();
-  app.innerHTML = html;
+  /* ---------- MAIN RENDER & ROUTING ---------- */
+  function render() {
+    const app = document.getElementById("app");
+    let html = "";
+    if (state.currentShop) html = renderShop();
+    else if (state.tab === "home") html = renderHome();
+    else if (state.tab === "search") html = renderSearch();
+    else if (state.tab === "cart") html = renderCart();
+    else if (state.tab === "orders") html = renderOrders();
+    else if (state.tab === "profile") html = renderProfile();
+    app.innerHTML = html;
 
-  document.querySelectorAll(".bottom-nav button").forEach(b => { b.classList.toggle("active", b.dataset.tab === state.tab); });
-  if (state.tab === "search") { const i = document.getElementById("searchInput"); if (i && !state.searchQuery) i.focus(); }
+    document.querySelectorAll(".bottom-nav button").forEach(b => { b.classList.toggle("active", b.dataset.tab === state.tab); });
+    if (state.tab === "search") { const i = document.getElementById("searchInput"); if (i && !state.searchQuery) i.focus(); }
+    updateBadge();
+  }
+
+  document.querySelectorAll(".bottom-nav button").forEach(btn => {
+    btn.addEventListener("click", () => { state.tab = btn.dataset.tab; state.currentShop = null; state.currentProduct = null; render(); window.scrollTo(0, 0); });
+  });
+
+  /* ---------- INIT ---------- */
+  setTimeout(() => { document.getElementById('splash').style.opacity = '0'; setTimeout(() => document.getElementById('splash').remove(), 500); }, 2000);
+  document.getElementById("locLabel").textContent = state.location;
   updateBadge();
-}
+  render();
 
-document.querySelectorAll(".bottom-nav button").forEach(btn => {
-  btn.addEventListener("click", () => { state.tab = btn.dataset.tab; state.currentShop = null; state.currentProduct = null; render(); window.scrollTo(0, 0); });
-});
+  // If user is already logged in, sync from Firebase on load
+  if (state.user && state.user.phone) {
+    loadFromFirebase(state.user.phone);
+  }
 
-/* ---------- INIT ---------- */
-setTimeout(() => { document.getElementById('splash').style.opacity = '0'; setTimeout(() => document.getElementById('splash').remove(), 500); }, 2000);
-document.getElementById("locLabel").textContent = state.location;
-updateBadge();
-render();
+  // Expose functions to window so onclick works (Required for module scripts)
+  window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome; window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav; window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode; window.updatePay = updatePay; window.placeOrder = placeOrder; window.openTracking = openTracking; window.openChat = openChat; window.sendChat = sendChat; window.openRating = openRating; window.setStar = setStar; window.submitRating = submitRating; window.openLocationModal = openLocationModal; window.setAddressLabel = setAddressLabel; window.saveAddress = saveAddress; window.openAuth = openAuth; window.sendOTP = sendOTP; window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup; window.logout = logout; window.reorder = reorder; window.closeModal = closeModal; window.toast = toast;
+  
+  function applyCoupon() {
+    const code = prompt("Enter coupon code:\nTry: SYED10, WELCOME50, FREESHIP");
+    if (!code) return;
+    const c = code.trim().toUpperCase();
+    if (COUPONS[c]) { state.coupon = c; save(); render(); toast("Coupon applied: " + c); } else { toast("Invalid coupon"); }
+  }
+  window.applyCoupon = applyCoupon;
 </script>
 </body>
 </html>
