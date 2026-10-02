@@ -6,32 +6,22 @@
 <meta name="theme-color" content="#0f172a" />
 <title>SYEDGO</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- GOOGLE MAPS API -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLf8FDyUoWTFsiMu20azhnscWkiyCDE24"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLf8FDyUoWTFsiMu20azhnscWkiyCDE24&libraries=places"></script>
 <style>
 :root {
-  --primary: #0f172a;
-  --accent: #f59e0b;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --bg: #f1f5f9;
-  --card: #ffffff;
-  --text: #0f172a;
-  --text-light: #64748b;
-  --border: #e2e8f0;
+  --primary: #0f172a; --accent: #f59e0b; --success: #22c55e; --danger: #ef4444;
+  --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --text-light: #64748b; --border: #e2e8f0;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); display: flex; justify-content: center; min-height: 100vh; }
 .app { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; position: relative; padding-bottom: 75px; overflow-x: hidden; }
 
-/* Splash */
 #splash { position: fixed; inset: 0; background: var(--primary); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s; }
 #splash h1 { font-size: 36px; letter-spacing: 3px; margin-bottom: 10px; }
 #splash p { color: #94a3b8; font-size: 14px; }
 #splash .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-top: 20px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Topbar */
 .topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--primary); color: #fff; position: sticky; top: 0; z-index: 10; }
 .topbar .loc { font-size: 12px; opacity: 0.85; cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .topbar h1 { font-size: 20px; letter-spacing: 1px; }
@@ -80,7 +70,7 @@ p { font-size: 13px; color: var(--text-light); }
 
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.2s; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.sheet { background: #fff; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+.sheet { background: #fff; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; max-height: 92vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .sheet h3 { margin-bottom: 16px; font-size: 20px; }
 .sheet input, .sheet select, .sheet textarea { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; font-size: 14px; outline: none; font-family: inherit; }
@@ -101,11 +91,11 @@ p { font-size: 13px; color: var(--text-light); }
 .timeline-step::before { content: ''; position: absolute; left: -26px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--border); border: 2px solid #fff; }
 .timeline-step.done::before { background: var(--success); }
 .timeline-step.active::before { background: var(--accent); animation: pulse 1.5s infinite; }
+.timeline-step.cancelled::before { background: var(--danger); }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); } 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } }
 .timeline-step h4 { font-size: 14px; color: var(--text); font-weight: 600; }
 .timeline-step p { font-size: 12px; color: var(--text-light); margin-top: 2px; }
 
-/* Live Map */
 #liveTrackingMap { width: 100%; height: 320px; border-radius: 16px; margin-bottom: 16px; border: 1px solid var(--border); background: #e2e8f0; }
 
 .chat-box { height: 300px; overflow-y: auto; background: #f8fafc; border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border); }
@@ -120,7 +110,7 @@ p { font-size: 13px; color: var(--text-light); }
 .star { font-size: 32px; cursor: pointer; color: #cbd5e1; transition: color 0.2s; }
 .star.active { color: var(--accent); }
 
-.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-width: 90%; text-align: center; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 .empty { text-align: center; color: var(--text-light); padding: 60px 0; font-size: 14px; }
 .empty .big { font-size: 56px; display: block; margin-bottom: 16px; }
@@ -128,6 +118,9 @@ p { font-size: 13px; color: var(--text-light); }
 .status-chip.pending { background: #fef3c7; color: #92400e; }
 .status-chip.delivered { background: #dcfce7; color: #166534; }
 .status-chip.assigned { background: #dbeafe; color: #1e40af; }
+.status-chip.cancelled { background: #fee2e2; color: #991b1b; }
+.checkout-btn { width: 100%; background: var(--success); color: #fff; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; margin-top: 16px; cursor: pointer; }
+.checkout-btn:active { background: #16a34a; }
 </style>
 </head>
 <body>
@@ -176,9 +169,8 @@ p { font-size: 13px; color: var(--text-light); }
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
 
-  /* ---------- CONFIG & DATA ---------- */
   const CONFIG = { PLATFORM_FEE: 30, DEFAULT_DELIVERY: 150, RIDER_CUT: 120, SYEDGO_MARGIN: 30 };
-  const DEFAULT_CENTER = { lat: 34.7717, lng: 72.3600 }; // Swat center
+  const DEFAULT_CENTER = { lat: 34.7717, lng: 72.3600 };
 
   const SHOPS = [
     { id: 1, name: "Al-Madina Superstore", category: "Supermarket", rating: 4.5, time: "20-30 min", distance: "1.2 km", emoji: "🛒", featured: true, hours: "8:00 AM - 11:00 PM", banner: "linear-gradient(135deg, #10b981, #047857)", products: [ { id: 101, name: "Milk 1L", price: 220, desc: "Fresh full cream milk", stock: true }, { id: 102, name: "Eggs (12)", price: 180, desc: "Farm fresh eggs", stock: true }, { id: 103, name: "Bread", price: 120, desc: "Whole wheat bread", stock: true }, { id: 104, name: "Rice 5kg", price: 1450, desc: "Basmati rice", stock: true }, { id: 105, name: "Cooking Oil 1L", price: 580, desc: "Sunflower oil", stock: false } ] },
@@ -191,7 +183,6 @@ p { font-size: 13px; color: var(--text-light); }
   const CATEGORIES = [ { key: "all", label: "All", em: "🏪" }, { key: "Restaurant", label: "Food", em: "🍔" }, { key: "Supermarket", label: "Grocery", em: "🛒" }, { key: "Pharmacy", label: "Pharmacy", em: "💊" }, { key: "Fruits & Veg", label: "Fruits", em: "🍎" } ];
   const COUPONS = { "SYED10": { type: "percent", value: 10, min: 500 }, "WELCOME50": { type: "flat", value: 50, min: 300 }, "FREESHIP": { type: "shipping", value: 0, min: 0 } };
 
-  /* ---------- STATE ---------- */
   let state = {
     tab: "home", category: "all", searchQuery: "", searchFilter: "all", currentShop: null, currentProduct: null,
     user: JSON.parse(localStorage.getItem("syedgo_user")) || null,
@@ -203,32 +194,21 @@ p { font-size: 13px; color: var(--text-light); }
     location: localStorage.getItem("syedgo_loc") || "Swat, Pakistan"
   };
 
-  // Live tracking globals
-  let liveMap = null;
-  let liveRiderMarker = null;
-  let liveCustomerMarker = null;
-  let riderLocationListener = null;
-  let orderStatusListener = null;
-  let currentTrackingOrderId = null;
+  let liveMap = null, liveRiderMarker = null, liveCustomerMarker = null;
+  let riderLocationListener = null, orderStatusListener = null;
 
   /* ---------- FIREBASE SYNC ---------- */
   async function saveToFirebase() {
     if (!state.user || !state.user.phone) return;
     try {
-      const userRef = doc(db, "users", state.user.phone);
-      await setDoc(userRef, {
-        user: state.user,
-        cart: state.cart,
-        orders: state.orders,
-        address: state.address,
-        favorites: state.favorites,
-        location: state.location,
+      await setDoc(doc(db, "users", state.user.phone), {
+        user: state.user, cart: state.cart, orders: state.orders,
+        address: state.address, favorites: state.favorites, location: state.location,
         updatedAt: new Date().toISOString()
       }, { merge: true });
     } catch (e) { console.error("Firebase save error:", e); }
   }
 
-  /* ---------- HELPERS ---------- */
   function saveLocal() {
     localStorage.setItem("syedgo_user", JSON.stringify(state.user));
     localStorage.setItem("syedgo_cart", JSON.stringify(state.cart));
@@ -238,10 +218,9 @@ p { font-size: 13px; color: var(--text-light); }
     localStorage.setItem("syedgo_coupon", JSON.stringify(state.coupon));
     localStorage.setItem("syedgo_loc", state.location);
   }
-
   function save() { saveLocal(); saveToFirebase(); }
 
-  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2000); }
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2200); }
   function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
   function findProduct(id) { for (const s of SHOPS) { const p = s.products.find(x => x.id === id); if (p) return { ...p, shopId: s.id, shopName: s.name }; } return null; }
   function cartCount() { return state.cart.reduce((a, b) => a + b.qty, 0); }
@@ -258,7 +237,6 @@ p { font-size: 13px; color: var(--text-light); }
   function openShop(id) { state.currentShop = id; render(); window.scrollTo(0,0); }
   function backToHome() { state.currentShop = null; state.currentProduct = null; render(); }
 
-  /* ---------- RENDER: HOME ---------- */
   function renderHome() {
     const featured = SHOPS.filter(s => s.featured);
     const list = SHOPS.filter(s => state.category === "all" || s.category === state.category);
@@ -309,7 +287,6 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- RENDER: SHOP DETAIL ---------- */
   function renderShop() {
     const s = SHOPS.find(x => x.id === state.currentShop);
     if (!s) return renderHome();
@@ -344,7 +321,6 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- PRODUCT DETAIL ---------- */
   function openProduct(pid) {
     const p = findProduct(pid);
     if (!p) return;
@@ -370,7 +346,6 @@ p { font-size: 13px; color: var(--text-light); }
     document.getElementById("modalRoot").innerHTML = html;
   }
 
-  /* ---------- SEARCH ---------- */
   function renderSearchResults() {
     const q = state.searchQuery.toLowerCase().trim();
     if (!q) return "";
@@ -382,7 +357,6 @@ p { font-size: 13px; color: var(--text-light); }
     if (state.searchFilter === "rating") res = res.filter(r => r.type === "shop" ? r.data.rating >= 4.5 : true);
     if (state.searchFilter === "price_low") res.sort((a,b) => (a.type==='product'?a.data.price:0) - (b.type==='product'?b.data.price:0));
     if (state.searchFilter === "price_high") res.sort((a,b) => (b.type==='product'?b.data.price:0) - (a.type==='product'?a.data.price:0));
-    
     if (!res.length) return '<div class="empty"><span class="big">😕</span>No results for "'+state.searchQuery+'"</div>';
     return res.map(r => r.type === "shop"
       ? `<div class="card" onclick="openShop(${r.data.id})"><div class="shop-header"><div class="shop-img">${r.data.emoji}</div><div class="shop-info"><h3>${r.data.name}</h3><p>${r.data.category} • ⭐ ${r.data.rating}</p></div></div></div>`
@@ -405,7 +379,6 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- CART ---------- */
   function renderCart() {
     if (!state.cart.length) return '<div class="empty"><span class="big">🛒</span>Your cart is empty</div>';
     const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
@@ -438,7 +411,6 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- CHECKOUT ---------- */
   function openCheckout() {
     if (state.cart.length === 0) return toast("Cart is empty");
     if (!state.user) { toast("Please login first"); state.tab = "profile"; render(); return; }
@@ -497,57 +469,54 @@ p { font-size: 13px; color: var(--text-light); }
     });
   }
 
-  /* ---------- PLACE ORDER (NOW WRITES TO FIRESTORE `orders` COLLECTION) ---------- */
   async function placeOrder() {
     const mode = window._mode; const pay = window._pay;
     const sub = cartSubtotal(); const df = mode === "delivery" ? deliveryFee() : 0; const pf = platformFee(); const disc = discountAmount(); const total = Math.max(0, sub + df + pf - disc);
-    
     const orderId = "SY" + Date.now().toString().slice(-6);
     const order = {
-      id: orderId,
-      userId: state.user.phone,
-      userName: state.user.name,
-      userPhone: state.user.phone,
-      items: [...state.cart],
-      subtotal: sub,
-      delivery: df,
-      platformFee: pf,
-      discount: disc,
-      total: total,
-      mode, pay,
-      address: state.address,
-      status: "Placed",
-      createdAt: new Date().toISOString(),
-      rider: null,
-      riderEarning: 0,
-      timeline: ["Placed"]
+      id: orderId, userId: state.user.phone, userName: state.user.name, userPhone: state.user.phone,
+      items: [...state.cart], subtotal: sub, delivery: df, platformFee: pf, discount: disc, total: total,
+      mode, pay, address: state.address, status: "Placed",
+      createdAt: new Date().toISOString(), rider: null, riderEarning: 0, timeline: ["Placed"]
     };
-
-    // Save to local user doc
     state.orders.unshift(order);
-    state.cart = [];
-    state.coupon = null;
-    save(); updateBadge(); closeModal();
-    state.tab = "orders";
-    render();
+    state.cart = []; state.coupon = null;
+    save(); updateBadge(); closeModal(); state.tab = "orders"; render();
     toast("Order placed! #" + orderId);
+    try { await setDoc(doc(db, "orders", orderId), order); console.log("✅ Order written:", orderId); }
+    catch (e) { console.error("Failed:", e); toast("Cloud sync failed"); }
+  }
 
-    // Write order to Firestore `orders` collection so Rider App can see it
+  /* ---------- CANCEL ORDER ---------- */
+  async function cancelOrder(orderId) {
+    const o = state.orders.find(x => x.id === orderId);
+    if (!o) return;
+    if (o.status === "Rider Assigned" || o.status === "Picked Up" || o.status === "On the Way") {
+      return toast("Rider already assigned. Please contact support.");
+    }
+    if (!confirm("Cancel this order? This cannot be undone.")) return;
     try {
-      await setDoc(doc(db, "orders", orderId), order);
-      console.log("✅ Order written to Firestore: orders/" + orderId);
+      await updateDoc(doc(db, "orders", orderId), {
+        status: "Cancelled",
+        cancelledAt: new Date().toISOString(),
+        cancelledBy: "Customer"
+      });
+      o.status = "Cancelled";
+      o.timeline = [...(o.timeline || []), "Cancelled"];
+      saveLocal();
+      toast("Order cancelled ❌");
+      render();
     } catch (e) {
-      console.error("Failed to write order to Firestore:", e);
-      toast("Order placed locally, but cloud sync failed");
+      console.error("Cancel error:", e);
+      toast("Failed to cancel order");
     }
   }
 
-  /* ---------- LIVE ORDER TRACKING ---------- */
+  /* ---------- LIVE TRACKING ---------- */
   function openTracking(orderId) {
     const o = state.orders.find(x => x.id === orderId);
     if (!o) return;
-
-    currentTrackingOrderId = orderId;
+    if (o.status === "Cancelled") return toast("Order was cancelled");
 
     const html = `
       <div class="overlay" onclick="if(event.target===this) closeTracking()">
@@ -558,9 +527,7 @@ p { font-size: 13px; color: var(--text-light); }
           </div>
           
           <div id="liveTrackingMap"></div>
-          
           <div id="riderInfoBox"></div>
-          
           <div id="timelineBox">
             <div class="timeline">
               ${["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"].map((step, i) => {
@@ -574,36 +541,22 @@ p { font-size: 13px; color: var(--text-light); }
           </div>
         </div>
       </div>`;
-
     document.getElementById("modalRoot").innerHTML = html;
-
-    // Initialize the map after DOM updates
     setTimeout(() => initLiveTrackingMap(o), 150);
   }
 
   function initLiveTrackingMap(order) {
     const mapEl = document.getElementById("liveTrackingMap");
     if (!mapEl) return;
+    const customerPos = order.address?.lat && order.address?.lng ? { lat: order.address.lat, lng: order.address.lng } : DEFAULT_CENTER;
 
-    // Customer location (fallback to Swat center)
-    const customerPos = order.address?.lat && order.address?.lng
-      ? { lat: order.address.lat, lng: order.address.lng }
-      : DEFAULT_CENTER;
-
-    // Create map
     liveMap = new google.maps.Map(mapEl, {
-      center: customerPos,
-      zoom: 14,
-      disableDefaultUI: true,
-      zoomControl: true,
+      center: customerPos, zoom: 14, disableDefaultUI: true, zoomControl: true,
       styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
     });
 
-    // Customer marker (destination)
     liveCustomerMarker = new google.maps.Marker({
-      position: customerPos,
-      map: liveMap,
-      title: "Your Address",
+      position: customerPos, map: liveMap, title: "Your Address",
       icon: {
         url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
@@ -613,22 +566,15 @@ p { font-size: 13px; color: var(--text-light); }
       }
     });
 
-    // Listen to live rider location from Firestore
     riderLocationListener = onSnapshot(doc(db, "rider_locations", order.id), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         if (data.location) {
           const riderPos = { lat: data.location.latitude, lng: data.location.longitude };
-
-          if (liveRiderMarker) {
-            // Animate rider marker to new position
-            smoothMoveMarker(liveRiderMarker, riderPos);
-          } else {
-            // Create rider marker for the first time
+          if (liveRiderMarker) smoothMoveMarker(liveRiderMarker, riderPos);
+          else {
             liveRiderMarker = new google.maps.Marker({
-              position: riderPos,
-              map: liveMap,
-              title: "Rider Location",
+              position: riderPos, map: liveMap, title: "Rider",
               icon: {
                 url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
                   <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">
@@ -639,22 +585,16 @@ p { font-size: 13px; color: var(--text-light); }
               }
             });
           }
-
-          // Fit map to show both markers
           const bounds = new google.maps.LatLngBounds();
-          bounds.extend(customerPos);
-          bounds.extend(riderPos);
+          bounds.extend(customerPos); bounds.extend(riderPos);
           liveMap.fitBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
         }
       }
-    }, (err) => { console.warn("Rider location listener error:", err); });
+    });
 
-    // Listen to order status changes (from Rider App)
     orderStatusListener = onSnapshot(doc(db, "orders", order.id), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
-
-        // Update local order
         const localOrder = state.orders.find(x => x.id === order.id);
         if (localOrder) {
           localOrder.status = data.status || localOrder.status;
@@ -662,48 +602,39 @@ p { font-size: 13px; color: var(--text-light); }
           localOrder.riderEarning = data.riderEarning || 0;
           saveLocal();
         }
-
-        // Update rider info box
         const riderBox = document.getElementById("riderInfoBox");
         if (riderBox && data.rider) {
           riderBox.innerHTML = `
             <div style="background:#f0fdf4;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <b>${data.rider.name}</b><br>
-                <span style="font-size:12px;color:var(--text-light)">${data.rider.bike || 'Motorcycle'} • ⭐ ${data.rider.rating || 5.0}</span>
-              </div>
+              <div><b>${data.rider.name}</b><br><span style="font-size:12px;color:var(--text-light)">${data.rider.bike || 'Motorcycle'} • ⭐ ${data.rider.rating || 5.0}</span></div>
               <div style="display:flex;gap:8px;">
                 <button class="add-btn" style="background:var(--success)" onclick="toast('Calling ${data.rider.name}...')">📞 Call</button>
                 <button class="add-btn" style="background:var(--primary)" onclick="openChat('${order.id}')">💬 Chat</button>
               </div>
             </div>`;
         }
-
-        // Update timeline
         const timelineBox = document.getElementById("timelineBox");
         if (timelineBox) {
           const steps = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"];
           const currentIdx = steps.indexOf(data.status);
+          const isCancelled = data.status === "Cancelled";
           timelineBox.innerHTML = `
             <div class="timeline">
               ${steps.map((step, i) => {
                 let cls = "timeline-step";
-                if (i < currentIdx) cls += " done";
+                if (isCancelled) cls += " cancelled";
+                else if (i < currentIdx) cls += " done";
                 else if (i === currentIdx) cls += " active";
-                return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
+                return `<div class="${cls}"><h4>${step}</h4><p>${isCancelled ? 'Cancelled' : (i <= currentIdx ? 'Completed' : 'Pending')}</p></div>`;
               }).join("")}
             </div>`;
         }
-
-        // If delivered, stop listener
-        if (data.status === "Delivered") {
-          toast("Order delivered! 🎉");
-        }
+        if (data.status === "Delivered") toast("Order delivered! 🎉");
+        if (data.status === "Cancelled") toast("Order cancelled");
       }
-    }, (err) => { console.warn("Order status listener error:", err); });
+    });
   }
 
-  // Smooth marker movement (simple version)
   function smoothMoveMarker(marker, newPos) {
     const oldPos = marker.getPosition();
     if (!oldPos) { marker.setPosition(newPos); return; }
@@ -719,17 +650,12 @@ p { font-size: 13px; color: var(--text-light); }
   }
 
   function closeTracking() {
-    // Cleanup listeners
     if (riderLocationListener) { riderLocationListener(); riderLocationListener = null; }
     if (orderStatusListener) { orderStatusListener(); orderStatusListener = null; }
-    liveMap = null;
-    liveRiderMarker = null;
-    liveCustomerMarker = null;
-    currentTrackingOrderId = null;
+    liveMap = null; liveRiderMarker = null; liveCustomerMarker = null;
     closeModal();
   }
 
-  /* ---------- CHAT (UI only for now) ---------- */
   function openChat(orderId) {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
@@ -758,7 +684,6 @@ p { font-size: 13px; color: var(--text-light); }
     setTimeout(() => { cb.innerHTML += `<div class="chat-msg other">Okay, noted!</div>`; cb.scrollTop = cb.scrollHeight; }, 1000);
   }
 
-  /* ---------- RATING ---------- */
   function openRating(orderId) {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
@@ -781,21 +706,34 @@ p { font-size: 13px; color: var(--text-light); }
   }
   function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both"); closeModal(); toast("Thanks for your feedback! ⭐"); }
 
-  /* ---------- LOCATION ---------- */
+  /* ---------- LOCATION WITH REVERSE GEOCODING ---------- */
+  let pickerMap = null, pickerMarker = null;
+
   function openLocationModal() {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
           <h3>Delivery Address</h3>
-          <div id="pickerMap" style="width:100%;height:200px;border-radius:14px;margin-bottom:14px;background:#e2e8f0;"></div>
-          <p style="font-size:12px;text-align:center;color:var(--text-light);margin-bottom:12px;">Drag the map to place pin 📍</p>
+          
+          <button class="add-btn" onclick="goToMyLocation()" style="width:100%;margin-bottom:12px;background:#dbeafe;color:#1e40af;padding:12px;font-size:13px;">
+            📍 Use My Current Location
+          </button>
+          
+          <div id="pickerMap" style="width:100%;height:220px;border-radius:14px;margin-bottom:12px;background:#e2e8f0;"></div>
+          <p style="font-size:11px;text-align:center;color:var(--text-light);margin-bottom:14px;">Drag the pin 📍 or tap on map to set exact location</p>
+          
           <div style="display:flex;gap:8px;margin-bottom:12px;">
             <div class="filter-chip ${state.address.label==='Home'?'active':''}" onclick="setAddressLabel('Home')">🏠 Home</div>
             <div class="filter-chip ${state.address.label==='Office'?'active':''}" onclick="setAddressLabel('Office')">🏢 Office</div>
             <div class="filter-chip ${state.address.label==='Other'?'active':''}" onclick="setAddressLabel('Other')">📍 Other</div>
           </div>
+          
+          <label style="font-size:12px;color:var(--text-light);margin-bottom:4px;display:block;">Full Address (auto-fills when you move the pin)</label>
           <input id="addrDetails" placeholder="House #, Street, Area..." value="${state.address.details || ''}" />
-          <input id="addrInstructions" placeholder="Delivery instructions (optional)" value="${state.address.instructions || ''}" />
+          
+          <label style="font-size:12px;color:var(--text-light);margin-bottom:4px;display:block;">Delivery Instructions (optional)</label>
+          <input id="addrInstructions" placeholder="e.g. Call before arriving" value="${state.address.instructions || ''}" />
+          
           <button class="checkout-btn" style="background:var(--primary);" onclick="saveAddress()">Save Address</button>
           <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
         </div>
@@ -804,43 +742,107 @@ p { font-size: 13px; color: var(--text-light); }
     setTimeout(() => initPickerMap(), 100);
   }
 
-  let pickerMap = null;
-  let pickerMarker = null;
   function initPickerMap() {
     const el = document.getElementById("pickerMap");
     if (!el) return;
     const startPos = state.address.lat && state.address.lng ? { lat: state.address.lat, lng: state.address.lng } : DEFAULT_CENTER;
     pickerMap = new google.maps.Map(el, {
-      center: startPos,
-      zoom: 15,
-      disableDefaultUI: true,
-      zoomControl: true
+      center: startPos, zoom: 15, disableDefaultUI: true, zoomControl: true
     });
     pickerMarker = new google.maps.Marker({
-      position: startPos,
-      map: pickerMap,
-      draggable: true
+      position: startPos, map: pickerMap, draggable: true,
+      animation: google.maps.Animation.DROP
     });
-    // Update address lat/lng when marker dragged
+
     google.maps.event.addListener(pickerMarker, 'dragend', () => {
       const pos = pickerMarker.getPosition();
-      state.address.lat = pos.lat();
-      state.address.lng = pos.lng();
-      console.log("📍 Pin moved to:", pos.lat(), pos.lng());
+      const lat = pos.lat(), lng = pos.lng();
+      state.address.lat = lat;
+      state.address.lng = lng;
+      reverseGeocode(lat, lng);
     });
-    // Also update when map clicked
+
     pickerMap.addListener('click', (e) => {
+      const lat = e.latLng.lat(), lng = e.latLng.lng();
       pickerMarker.setPosition(e.latLng);
-      state.address.lat = e.latLng.lat();
-      state.address.lng = e.latLng.lng();
+      state.address.lat = lat;
+      state.address.lng = lng;
+      reverseGeocode(lat, lng);
     });
   }
 
-  function setAddressLabel(label) { state.address.label = label; openLocationModal(); }
+  function reverseGeocode(lat, lng) {
+    const input = document.getElementById("addrDetails");
+    if (input) input.value = "Fetching address...";
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results[0]) {
+        const formatted = results[0].formatted_address;
+        if (input) input.value = formatted;
+        console.log("📍 Reverse geocoded:", formatted);
+      } else {
+        if (input) input.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        console.warn("Geocoding failed:", status);
+      }
+    });
+  }
+
+  function goToMyLocation() {
+    if (!navigator.geolocation) {
+      return toast("GPS not supported on this device");
+    }
+
+    // Check if we're on HTTPS or localhost (required for GPS)
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) {
+      alert("⚠️ Location requires HTTPS.\\n\\nYour app is running on: " + location.protocol + "\\n\\nSolution: Test via 'localhost' (VS Code Live Server) or host on Vercel/Netlify to use GPS.");
+      return;
+    }
+
+    toast("Getting your location...");
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        state.address.lat = lat;
+        state.address.lng = lng;
+        if (pickerMap) {
+          pickerMap.setCenter({ lat, lng });
+          pickerMap.setZoom(17);
+        }
+        if (pickerMarker) pickerMarker.setPosition({ lat, lng });
+        reverseGeocode(lat, lng);
+        toast("Location set ✅");
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        let msg = "";
+        if (err.code === 1) {
+          msg = "🚫 Location permission blocked.\\n\\nHow to fix:\\n1. Tap the 🔒 lock icon in your browser's URL bar\\n2. Tap 'Permissions'\\n3. Set 'Location' to ALLOW\\n4. Refresh the page\\n\\nOr: Open browser Settings → Site Settings → Location → Allow";
+        } else if (err.code === 2) {
+          msg = "📍 Location unavailable. Make sure GPS/Location is ON in your phone settings.";
+        } else if (err.code === 3) {
+          msg = "⏱️ Location request timed out. Try again.";
+        } else {
+          msg = "Location error: " + err.message;
+        }
+        alert(msg);
+        toast("Location blocked - see instructions");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }
+
+  function setAddressLabel(label) {
+    state.address.label = label;
+    openLocationModal();
+  }
+
   function saveAddress() {
     const details = document.getElementById('addrDetails').value.trim();
     const instructions = document.getElementById('addrInstructions').value.trim();
-    if (!details) return toast("Please enter address details");
+    if (!details || details === "Fetching address...") return toast("Please set a valid address");
     state.address.details = details;
     state.address.instructions = instructions;
     save(); closeModal(); toast("Address saved ✅"); render();
@@ -941,11 +943,15 @@ p { font-size: 13px; color: var(--text-light); }
     if (!state.orders.length) return '<div class="empty"><span class="big">📦</span>No orders yet</div>';
     return `
       <h2>My Orders</h2>
-      ${state.orders.map(o => `
-        <div class="card">
+      ${state.orders.map(o => {
+        const canCancel = (o.status === "Placed" || o.status === "Accepted by Store");
+        const isCancelled = o.status === "Cancelled";
+        const isDelivered = o.status === "Delivered";
+        return `
+        <div class="card" style="${isCancelled ? 'opacity:0.7;' : ''}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <b>#${o.id}</b>
-            <span class="status-chip ${o.status==='Placed'?'pending':''} ${o.status==='Delivered'?'delivered':''} ${o.status==='Rider Assigned'?'assigned':''}">${o.status}</span>
+            <span class="status-chip ${o.status==='Placed'?'pending':''} ${isDelivered?'delivered':''} ${o.status==='Rider Assigned'?'assigned':''} ${isCancelled?'cancelled':''}">${o.status}</span>
           </div>
           <p style="font-size:12px;color:var(--text-light);margin-bottom:8px">${new Date(o.createdAt).toLocaleString()}</p>
           ${o.items.map(i => `<div style="font-size:13px;display:flex;justify-content:space-between;padding:3px 0"><span>${i.name} × ${i.qty}</span><span>Rs ${i.price*i.qty}</span></div>`).join("")}
@@ -957,12 +963,17 @@ p { font-size: 13px; color: var(--text-light); }
           <div style="font-size:12px;color:var(--text-light);margin-top:8px">💳 ${o.pay.toUpperCase()} • ${o.mode==='delivery'?'Delivery':'Pickup'}</div>
           
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track Live</button>
-            ${o.status !== 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
-            ${o.status === 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
+            ${!isCancelled ? `<button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track Live</button>` : ''}
+            ${!isCancelled && !isDelivered ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
+            ${isDelivered ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
             <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="reorder('${o.id}')">🔄 Reorder</button>
           </div>
-        </div>`).join("")}
+          
+          ${canCancel ? `
+            <button class="add-btn" style="width:100%;margin-top:8px;background:var(--danger);color:#fff;padding:10px;" onclick="cancelOrder('${o.id}')">❌ Cancel Order</button>
+          ` : ''}
+        </div>`;
+      }).join("")}
     `;
   }
 
@@ -972,7 +983,6 @@ p { font-size: 13px; color: var(--text-light); }
     save(); updateBadge(); toast("Items added to cart!"); state.tab = "cart"; render();
   }
 
-  /* ---------- PROFILE ---------- */
   function renderProfile() {
     if (!state.user) {
       return `
@@ -994,16 +1004,15 @@ p { font-size: 13px; color: var(--text-light); }
         </div>
       </div>
       <div class="card">
-        <div class="profile-row" onclick="openLocationModal()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
-        <div class="profile-row" onclick="state.tab='orders';render()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>📦 My Orders</span><span>›</span></div>
-        <div class="profile-row" onclick="state.tab='home';state.category='all';state.currentShop=null;render()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Support ticket created')" style="display:flex;justify-content:space-between;padding:14px 0;font-size:14px;cursor:pointer;"><span>🎧 Help & Support</span><span>›</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;" onclick="openLocationModal()"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;" onclick="state.tab='orders';render()"><span>📦 My Orders</span><span>›</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;" onclick="state.tab='home';state.category='all';state.currentShop=null;render()"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
+        <div style="display:flex;justify-content:space-between;padding:14px 0;font-size:14px;cursor:pointer;" onclick="toast('Support ticket created')"><span>🎧 Help & Support</span><span>›</span></div>
       </div>
       <button class="checkout-btn" style="background:var(--danger)" onclick="logout()">Logout</button>
     `;
   }
 
-  /* ---------- MAIN RENDER ---------- */
   function render() {
     const app = document.getElementById("app");
     let html = "";
@@ -1028,14 +1037,13 @@ p { font-size: 13px; color: var(--text-light); }
   });
 
   function applyCoupon() {
-    const code = prompt("Enter coupon:\nTry SYED10, WELCOME50, FREESHIP");
+    const code = prompt("Enter coupon:\\nTry SYED10, WELCOME50, FREESHIP");
     if (!code) return;
     const c = code.trim().toUpperCase();
     if (COUPONS[c]) { state.coupon = c; save(); render(); toast("Coupon applied: " + c); }
     else toast("Invalid coupon");
   }
 
-  /* ---------- INIT ---------- */
   setTimeout(() => {
     document.getElementById('splash').style.opacity = '0';
     setTimeout(() => document.getElementById('splash').remove(), 500);
@@ -1045,7 +1053,6 @@ p { font-size: 13px; color: var(--text-light); }
   updateBadge();
   render();
 
-  // Expose all functions
   window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome;
   window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav;
   window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode;
@@ -1056,7 +1063,8 @@ p { font-size: 13px; color: var(--text-light); }
   window.saveAddress = saveAddress; window.openAuth = openAuth; window.sendOTP = sendOTP;
   window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup;
   window.logout = logout; window.reorder = reorder; window.closeModal = closeModal;
-  window.toast = toast; window.applyCoupon = applyCoupon;
+  window.toast = toast; window.applyCoupon = applyCoupon; window.cancelOrder = cancelOrder;
+  window.goToMyLocation = goToMyLocation;
 </script>
 </body>
 </html>
