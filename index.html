@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0f172a" />
 <title>SYEDGO</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- GOOGLE MAPS API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDLf8FDyUoWTFsiMu20azhnscWkiyCDE24"></script>
 <style>
 :root {
   --primary: #0f172a;
@@ -35,13 +37,11 @@ body { background: var(--bg); display: flex; justify-content: center; min-height
 .topbar h1 { font-size: 20px; letter-spacing: 1px; }
 .icon-btn { background: rgba(255,255,255,0.12); border: none; color: #fff; font-size: 18px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-/* Main */
 main { padding: 16px; }
 h2 { font-size: 18px; margin-bottom: 12px; color: var(--text); font-weight: 600; }
 h3 { font-size: 16px; color: var(--text); }
 p { font-size: 13px; color: var(--text-light); }
 
-/* Cards & Components */
 .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.02); }
 .shop-header { display: flex; gap: 12px; align-items: center; cursor: pointer; }
 .shop-img { width: 60px; height: 60px; border-radius: 14px; background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; border: 1px solid var(--border); }
@@ -54,12 +54,10 @@ p { font-size: 13px; color: var(--text-light); }
 .product-info p { font-size: 13px; color: var(--text-light); margin-top: 4px; font-weight: 600; }
 .add-btn { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: transform 0.1s; }
 .add-btn:active { transform: scale(0.95); }
-.add-btn.alt { background: var(--success); }
 .qty-box { display: flex; align-items: center; gap: 10px; }
 .qty-box button { background: var(--primary); color: #fff; border: none; border-radius: 8px; width: 30px; height: 30px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .qty-box span { font-size: 14px; font-weight: bold; min-width: 20px; text-align: center; }
 
-/* Bottom Nav */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 480px; display: flex; justify-content: space-around; background: #fff; border-top: 1px solid var(--border); padding: 10px 0; z-index: 100; }
 .bottom-nav button { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 20px; color: #94a3b8; cursor: pointer; position: relative; flex: 1; padding: 4px; transition: color 0.2s; }
 .bottom-nav button span.lbl { font-size: 10px; margin-top: 4px; font-weight: 500; }
@@ -67,7 +65,6 @@ p { font-size: 13px; color: var(--text-light); }
 .badge { position: absolute; top: -2px; right: 22%; background: var(--danger); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; border: 2px solid #fff; }
 .hidden { display: none !important; }
 
-/* Categories */
 .categories { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 8px; scrollbar-width: none; }
 .categories::-webkit-scrollbar { display: none; }
 .cat { flex-shrink: 0; background: #fff; border-radius: 14px; padding: 12px 16px; font-size: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; min-width: 80px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; }
@@ -75,14 +72,12 @@ p { font-size: 13px; color: var(--text-light); }
 .cat .em { font-size: 24px; display: block; margin-bottom: 6px; }
 .featured-tag { position: absolute; top: 0; right: 0; background: var(--accent); color: #fff; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 0 16px 0 10px; }
 
-/* Search */
 .search-input { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; font-size: 14px; margin-bottom: 14px; outline: none; background: #fff; }
 .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,23,42,0.1); }
 .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 8px; scrollbar-width: none; }
 .filter-chip { flex-shrink: 0; background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; cursor: pointer; color: var(--text-light); }
 .filter-chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-/* Modals & Overlays */
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn 0.2s; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .sheet { background: #fff; width: 100%; max-width: 480px; border-radius: 24px 24px 0 0; padding: 24px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
@@ -95,12 +90,10 @@ p { font-size: 13px; color: var(--text-light); }
 .pay-opt input { width: auto; margin: 0; }
 .pay-opt .pay-icon { font-size: 24px; }
 
-/* Checkout Fee Breakdown */
 .fee-breakdown { background: #f8fafc; border-radius: 14px; padding: 16px; margin-top: 16px; font-size: 14px; border: 1px solid var(--border); }
 .fee-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-light); }
 .fee-row.total { font-weight: 700; color: var(--text); font-size: 16px; border-top: 2px dashed var(--border); padding-top: 12px; margin-top: 12px; }
 
-/* Order Tracking Timeline */
 .timeline { position: relative; padding-left: 30px; margin-top: 16px; }
 .timeline::before { content: ''; position: absolute; left: 9px; top: 5px; bottom: 5px; width: 2px; background: var(--border); }
 .timeline-step { position: relative; margin-bottom: 24px; }
@@ -112,14 +105,9 @@ p { font-size: 13px; color: var(--text-light); }
 .timeline-step h4 { font-size: 14px; color: var(--text); font-weight: 600; }
 .timeline-step p { font-size: 12px; color: var(--text-light); margin-top: 2px; }
 
-/* Mock Map */
-.mock-map { width: 100%; height: 180px; background: #e2e8f0; border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--border); background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
-.map-pin { position: absolute; font-size: 30px; transition: all 1s linear; }
-.rider-pin { left: 20%; top: 30%; animation: moveRider 4s infinite alternate; }
-@keyframes moveRider { from { left: 20%; top: 30%; } to { left: 70%; top: 60%; } }
-.customer-pin { right: 15%; bottom: 20%; }
+/* Live Map */
+#liveTrackingMap { width: 100%; height: 320px; border-radius: 16px; margin-bottom: 16px; border: 1px solid var(--border); background: #e2e8f0; }
 
-/* Chat UI */
 .chat-box { height: 300px; overflow-y: auto; background: #f8fafc; border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border); }
 .chat-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
 .chat-msg.me { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -128,12 +116,10 @@ p { font-size: 13px; color: var(--text-light); }
 .chat-input input { flex: 1; margin-bottom: 0; }
 .chat-input button { background: var(--primary); color: #fff; border: none; border-radius: 12px; padding: 0 20px; font-weight: bold; cursor: pointer; }
 
-/* Rating Stars */
 .stars { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
 .star { font-size: 32px; cursor: pointer; color: #cbd5e1; transition: color 0.2s; }
 .star.active { color: var(--accent); }
 
-/* Toast */
 .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
 .empty { text-align: center; color: var(--text-light); padding: 60px 0; font-size: 14px; }
@@ -141,6 +127,7 @@ p { font-size: 13px; color: var(--text-light); }
 .status-chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #dcfce7; color: #166534; font-weight: 600; }
 .status-chip.pending { background: #fef3c7; color: #92400e; }
 .status-chip.delivered { background: #dcfce7; color: #166534; }
+.status-chip.assigned { background: #dbeafe; color: #1e40af; }
 </style>
 </head>
 <body>
@@ -171,12 +158,10 @@ p { font-size: 13px; color: var(--text-light); }
 <div id="modalRoot"></div>
 
 <script type="module">
-  // Import the functions you need from the SDKs
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-  // Your web app's Firebase configuration
   const firebaseConfig = {
     apiKey: "AIzaSyDGykbkZ4ITxkEgcxaQNZlH9rFO86c-xEU",
     authDomain: "syedgo-2027.firebaseapp.com",
@@ -187,13 +172,13 @@ p { font-size: 13px; color: var(--text-light); }
     measurementId: "G-L0B1K6N1EY"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
 
   /* ---------- CONFIG & DATA ---------- */
   const CONFIG = { PLATFORM_FEE: 30, DEFAULT_DELIVERY: 150, RIDER_CUT: 120, SYEDGO_MARGIN: 30 };
+  const DEFAULT_CENTER = { lat: 34.7717, lng: 72.3600 }; // Swat center
 
   const SHOPS = [
     { id: 1, name: "Al-Madina Superstore", category: "Supermarket", rating: 4.5, time: "20-30 min", distance: "1.2 km", emoji: "🛒", featured: true, hours: "8:00 AM - 11:00 PM", banner: "linear-gradient(135deg, #10b981, #047857)", products: [ { id: 101, name: "Milk 1L", price: 220, desc: "Fresh full cream milk", stock: true }, { id: 102, name: "Eggs (12)", price: 180, desc: "Farm fresh eggs", stock: true }, { id: 103, name: "Bread", price: 120, desc: "Whole wheat bread", stock: true }, { id: 104, name: "Rice 5kg", price: 1450, desc: "Basmati rice", stock: true }, { id: 105, name: "Cooking Oil 1L", price: 580, desc: "Sunflower oil", stock: false } ] },
@@ -213,14 +198,22 @@ p { font-size: 13px; color: var(--text-light); }
     cart: JSON.parse(localStorage.getItem("syedgo_cart")) || [],
     orders: JSON.parse(localStorage.getItem("syedgo_orders")) || [],
     favorites: JSON.parse(localStorage.getItem("syedgo_fav")) || [],
-    address: JSON.parse(localStorage.getItem("syedgo_addr")) || { label: "Home", details: "", instructions: "" },
+    address: JSON.parse(localStorage.getItem("syedgo_addr")) || { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
     coupon: JSON.parse(localStorage.getItem("syedgo_coupon")) || null,
     location: localStorage.getItem("syedgo_loc") || "Swat, Pakistan"
   };
 
-  /* ---------- FIREBASE SYNC FUNCTIONS ---------- */
+  // Live tracking globals
+  let liveMap = null;
+  let liveRiderMarker = null;
+  let liveCustomerMarker = null;
+  let riderLocationListener = null;
+  let orderStatusListener = null;
+  let currentTrackingOrderId = null;
+
+  /* ---------- FIREBASE SYNC ---------- */
   async function saveToFirebase() {
-    if (!state.user || !state.user.phone) return; // Only save if logged in
+    if (!state.user || !state.user.phone) return;
     try {
       const userRef = doc(db, "users", state.user.phone);
       await setDoc(userRef, {
@@ -232,10 +225,7 @@ p { font-size: 13px; color: var(--text-light); }
         location: state.location,
         updatedAt: new Date().toISOString()
       }, { merge: true });
-      console.log("☁️ Synced to Firebase");
-    } catch (e) {
-      console.error("Firebase save error:", e);
-    }
+    } catch (e) { console.error("Firebase save error:", e); }
   }
 
   /* ---------- HELPERS ---------- */
@@ -249,10 +239,7 @@ p { font-size: 13px; color: var(--text-light); }
     localStorage.setItem("syedgo_loc", state.location);
   }
 
-  function save() {
-    saveLocal();
-    saveToFirebase(); // Sync to cloud in background
-  }
+  function save() { saveLocal(); saveToFirebase(); }
 
   function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2000); }
   function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
@@ -357,7 +344,7 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- RENDER: PRODUCT DETAIL (Modal overlay) ---------- */
+  /* ---------- PRODUCT DETAIL ---------- */
   function openProduct(pid) {
     const p = findProduct(pid);
     if (!p) return;
@@ -383,7 +370,7 @@ p { font-size: 13px; color: var(--text-light); }
     document.getElementById("modalRoot").innerHTML = html;
   }
 
-  /* ---------- RENDER: SEARCH ---------- */
+  /* ---------- SEARCH ---------- */
   function renderSearchResults() {
     const q = state.searchQuery.toLowerCase().trim();
     if (!q) return "";
@@ -418,7 +405,7 @@ p { font-size: 13px; color: var(--text-light); }
     `;
   }
 
-  /* ---------- RENDER: CART ---------- */
+  /* ---------- CART ---------- */
   function renderCart() {
     if (!state.cart.length) return '<div class="empty"><span class="big">🛒</span>Your cart is empty</div>';
     const sub = cartSubtotal(); const df = deliveryFee(); const pf = platformFee(); const disc = discountAmount(); const total = cartTotal();
@@ -510,57 +497,239 @@ p { font-size: 13px; color: var(--text-light); }
     });
   }
 
-  function placeOrder() {
+  /* ---------- PLACE ORDER (NOW WRITES TO FIRESTORE `orders` COLLECTION) ---------- */
+  async function placeOrder() {
     const mode = window._mode; const pay = window._pay;
     const sub = cartSubtotal(); const df = mode === "delivery" ? deliveryFee() : 0; const pf = platformFee(); const disc = discountAmount(); const total = Math.max(0, sub + df + pf - disc);
-    const order = { id: "SY" + Date.now().toString().slice(-6), items: [...state.cart], subtotal: sub, delivery: df, platformFee: pf, discount: disc, total: total, mode, pay, address: state.address, status: "Placed", createdAt: new Date().toISOString(), rider: null, timeline: ["Placed"] };
-    state.orders.unshift(order); state.cart = []; state.coupon = null; save(); updateBadge(); closeModal(); state.tab = "orders"; render(); toast("Order placed! #" + order.id);
-    setTimeout(() => simulateRider(order.id), 4000);
+    
+    const orderId = "SY" + Date.now().toString().slice(-6);
+    const order = {
+      id: orderId,
+      userId: state.user.phone,
+      userName: state.user.name,
+      userPhone: state.user.phone,
+      items: [...state.cart],
+      subtotal: sub,
+      delivery: df,
+      platformFee: pf,
+      discount: disc,
+      total: total,
+      mode, pay,
+      address: state.address,
+      status: "Placed",
+      createdAt: new Date().toISOString(),
+      rider: null,
+      riderEarning: 0,
+      timeline: ["Placed"]
+    };
+
+    // Save to local user doc
+    state.orders.unshift(order);
+    state.cart = [];
+    state.coupon = null;
+    save(); updateBadge(); closeModal();
+    state.tab = "orders";
+    render();
+    toast("Order placed! #" + orderId);
+
+    // Write order to Firestore `orders` collection so Rider App can see it
+    try {
+      await setDoc(doc(db, "orders", orderId), order);
+      console.log("✅ Order written to Firestore: orders/" + orderId);
+    } catch (e) {
+      console.error("Failed to write order to Firestore:", e);
+      toast("Order placed locally, but cloud sync failed");
+    }
   }
 
-  /* ---------- ORDER TRACKING & SIMULATION ---------- */
-  function simulateRider(orderId) {
-    const o = state.orders.find(x => x.id === orderId); if (!o) return;
-    o.rider = { name: "Ali Khan", phone: "+92 300 1234567", rating: 4.8, bike: "Honda 125" };
-    o.timeline.push("Accepted by Store"); save(); render();
-    setTimeout(() => { o.timeline.push("Rider Assigned"); save(); render(); }, 3000);
-    setTimeout(() => { o.timeline.push("Picked Up"); save(); render(); }, 6000);
-    setTimeout(() => { o.timeline.push("On the Way"); save(); render(); }, 9000);
-    setTimeout(() => { o.status = "Delivered"; o.timeline.push("Delivered"); save(); render(); }, 15000);
-  }
-
+  /* ---------- LIVE ORDER TRACKING ---------- */
   function openTracking(orderId) {
-    const o = state.orders.find(x => x.id === orderId); if (!o) return;
-    const steps = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"];
-    const currentIdx = steps.indexOf(o.timeline[o.timeline.length - 1]);
+    const o = state.orders.find(x => x.id === orderId);
+    if (!o) return;
+
+    currentTrackingOrderId = orderId;
+
     const html = `
-      <div class="overlay" onclick="if(event.target===this)closeModal()">
+      <div class="overlay" onclick="if(event.target===this) closeTracking()">
         <div class="sheet">
-          <h3>Track Order #${o.id}</h3>
-          <div class="mock-map">
-            <div class="map-pin customer-pin">🏠</div>
-            <div class="map-pin rider-pin">🛵</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">Track #${o.id}</h3>
+            <button class="add-btn" style="background:#f1f5f9;color:var(--text)" onclick="closeTracking()">✕</button>
           </div>
-          ${o.rider ? `<div style="background:#f0fdf4;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-            <div><b>${o.rider.name}</b><br><span style="font-size:12px;color:var(--text-light)">${o.rider.bike} • ⭐ ${o.rider.rating}</span></div>
-            <div style="display:flex;gap:8px;">
-              <button class="add-btn" style="background:var(--success)" onclick="toast('Calling rider...')">📞 Call</button>
-              <button class="add-btn" style="background:var(--primary)" onclick="openChat(${o.id})">💬 Chat</button>
+          
+          <div id="liveTrackingMap"></div>
+          
+          <div id="riderInfoBox"></div>
+          
+          <div id="timelineBox">
+            <div class="timeline">
+              ${["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"].map((step, i) => {
+                const currentIdx = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"].indexOf(o.status);
+                let cls = "timeline-step";
+                if (i < currentIdx) cls += " done";
+                else if (i === currentIdx) cls += " active";
+                return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
+              }).join("")}
             </div>
-          </div>` : ""}
-          <div class="timeline">
-            ${steps.map((step, i) => {
-              let cls = "timeline-step"; if (i < currentIdx) cls += " done"; else if (i === currentIdx) cls += " active";
-              return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
-            }).join("")}
           </div>
-          <button class="checkout-btn" style="background:#f1f5f9;color:var(--text);margin-top:20px;" onclick="closeModal()">Close</button>
         </div>
       </div>`;
+
     document.getElementById("modalRoot").innerHTML = html;
+
+    // Initialize the map after DOM updates
+    setTimeout(() => initLiveTrackingMap(o), 150);
   }
 
-  /* ---------- CHAT ---------- */
+  function initLiveTrackingMap(order) {
+    const mapEl = document.getElementById("liveTrackingMap");
+    if (!mapEl) return;
+
+    // Customer location (fallback to Swat center)
+    const customerPos = order.address?.lat && order.address?.lng
+      ? { lat: order.address.lat, lng: order.address.lng }
+      : DEFAULT_CENTER;
+
+    // Create map
+    liveMap = new google.maps.Map(mapEl, {
+      center: customerPos,
+      zoom: 14,
+      disableDefaultUI: true,
+      zoomControl: true,
+      styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
+    });
+
+    // Customer marker (destination)
+    liveCustomerMarker = new google.maps.Marker({
+      position: customerPos,
+      map: liveMap,
+      title: "Your Address",
+      icon: {
+        url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
+            <path fill="#0f172a" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>`),
+        scaledSize: new google.maps.Size(40, 40)
+      }
+    });
+
+    // Listen to live rider location from Firestore
+    riderLocationListener = onSnapshot(doc(db, "rider_locations", order.id), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.location) {
+          const riderPos = { lat: data.location.latitude, lng: data.location.longitude };
+
+          if (liveRiderMarker) {
+            // Animate rider marker to new position
+            smoothMoveMarker(liveRiderMarker, riderPos);
+          } else {
+            // Create rider marker for the first time
+            liveRiderMarker = new google.maps.Marker({
+              position: riderPos,
+              map: liveMap,
+              title: "Rider Location",
+              icon: {
+                url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="11" fill="#22c55e" stroke="#fff" stroke-width="2"/>
+                    <text x="12" y="16" text-anchor="middle" font-size="13">🛵</text>
+                  </svg>`),
+                scaledSize: new google.maps.Size(44, 44)
+              }
+            });
+          }
+
+          // Fit map to show both markers
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend(customerPos);
+          bounds.extend(riderPos);
+          liveMap.fitBounds(bounds, { top: 60, bottom: 60, left: 60, right: 60 });
+        }
+      }
+    }, (err) => { console.warn("Rider location listener error:", err); });
+
+    // Listen to order status changes (from Rider App)
+    orderStatusListener = onSnapshot(doc(db, "orders", order.id), (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+
+        // Update local order
+        const localOrder = state.orders.find(x => x.id === order.id);
+        if (localOrder) {
+          localOrder.status = data.status || localOrder.status;
+          localOrder.rider = data.rider || localOrder.rider;
+          localOrder.riderEarning = data.riderEarning || 0;
+          saveLocal();
+        }
+
+        // Update rider info box
+        const riderBox = document.getElementById("riderInfoBox");
+        if (riderBox && data.rider) {
+          riderBox.innerHTML = `
+            <div style="background:#f0fdf4;border-radius:14px;padding:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <b>${data.rider.name}</b><br>
+                <span style="font-size:12px;color:var(--text-light)">${data.rider.bike || 'Motorcycle'} • ⭐ ${data.rider.rating || 5.0}</span>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button class="add-btn" style="background:var(--success)" onclick="toast('Calling ${data.rider.name}...')">📞 Call</button>
+                <button class="add-btn" style="background:var(--primary)" onclick="openChat('${order.id}')">💬 Chat</button>
+              </div>
+            </div>`;
+        }
+
+        // Update timeline
+        const timelineBox = document.getElementById("timelineBox");
+        if (timelineBox) {
+          const steps = ["Placed", "Accepted by Store", "Rider Assigned", "Picked Up", "On the Way", "Delivered"];
+          const currentIdx = steps.indexOf(data.status);
+          timelineBox.innerHTML = `
+            <div class="timeline">
+              ${steps.map((step, i) => {
+                let cls = "timeline-step";
+                if (i < currentIdx) cls += " done";
+                else if (i === currentIdx) cls += " active";
+                return `<div class="${cls}"><h4>${step}</h4><p>${i <= currentIdx ? 'Completed' : 'Pending'}</p></div>`;
+              }).join("")}
+            </div>`;
+        }
+
+        // If delivered, stop listener
+        if (data.status === "Delivered") {
+          toast("Order delivered! 🎉");
+        }
+      }
+    }, (err) => { console.warn("Order status listener error:", err); });
+  }
+
+  // Smooth marker movement (simple version)
+  function smoothMoveMarker(marker, newPos) {
+    const oldPos = marker.getPosition();
+    if (!oldPos) { marker.setPosition(newPos); return; }
+    const steps = 20;
+    const latStep = (newPos.lat - oldPos.lat()) / steps;
+    const lngStep = (newPos.lng - oldPos.lng()) / steps;
+    let i = 0;
+    const timer = setInterval(() => {
+      i++;
+      marker.setPosition({ lat: oldPos.lat() + latStep * i, lng: oldPos.lng() + lngStep * i });
+      if (i >= steps) clearInterval(timer);
+    }, 30);
+  }
+
+  function closeTracking() {
+    // Cleanup listeners
+    if (riderLocationListener) { riderLocationListener(); riderLocationListener = null; }
+    if (orderStatusListener) { orderStatusListener(); orderStatusListener = null; }
+    liveMap = null;
+    liveRiderMarker = null;
+    liveCustomerMarker = null;
+    currentTrackingOrderId = null;
+    closeModal();
+  }
+
+  /* ---------- CHAT (UI only for now) ---------- */
   function openChat(orderId) {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
@@ -572,7 +741,6 @@ p { font-size: 13px; color: var(--text-light); }
           <div class="chat-box" id="chatBox">
             <div class="chat-msg other">Hello! I am on my way to pick up your order.</div>
             <div class="chat-msg me">Okay, please hurry up.</div>
-            <div class="chat-msg other">I will be there in 10 minutes.</div>
           </div>
           <div class="chat-input">
             <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter')sendChat()" />
@@ -590,13 +758,12 @@ p { font-size: 13px; color: var(--text-light); }
     setTimeout(() => { cb.innerHTML += `<div class="chat-msg other">Okay, noted!</div>`; cb.scrollTop = cb.scrollHeight; }, 1000);
   }
 
-  /* ---------- RATINGS & REVIEWS ---------- */
+  /* ---------- RATING ---------- */
   function openRating(orderId) {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
           <h3>Rate your experience</h3>
-          <p style="text-align:center;margin-bottom:16px;">How was the store and rider?</p>
           <div style="text-align:center;margin-bottom:16px;"><b>Store Rating</b></div>
           <div class="stars" id="storeStars">${[1,2,3,4,5].map(i => `<span class="star" onclick="setStar('store',${i})">★</span>`).join("")}</div>
           <div style="text-align:center;margin-bottom:16px;"><b>Rider Rating</b></div>
@@ -612,51 +779,86 @@ p { font-size: 13px; color: var(--text-light); }
     if (type === 'store') { window._storeRating = val; document.querySelectorAll('#storeStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
     else { window._riderRating = val; document.querySelectorAll('#riderStars .star').forEach((s, i) => s.classList.toggle('active', i < val)); }
   }
-  function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both store and rider"); closeModal(); toast("Thanks for your feedback! ⭐"); }
+  function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both"); closeModal(); toast("Thanks for your feedback! ⭐"); }
 
-  /* ---------- LOCATION / MAP PIN ---------- */
+  /* ---------- LOCATION ---------- */
   function openLocationModal() {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
           <h3>Delivery Address</h3>
-          <div class="mock-map" style="height:140px;">
-            <div class="map-pin" style="left:50%;top:50%;transform:translate(-50%,-50%);">📍</div>
-          </div>
+          <div id="pickerMap" style="width:100%;height:200px;border-radius:14px;margin-bottom:14px;background:#e2e8f0;"></div>
+          <p style="font-size:12px;text-align:center;color:var(--text-light);margin-bottom:12px;">Drag the map to place pin 📍</p>
           <div style="display:flex;gap:8px;margin-bottom:12px;">
             <div class="filter-chip ${state.address.label==='Home'?'active':''}" onclick="setAddressLabel('Home')">🏠 Home</div>
             <div class="filter-chip ${state.address.label==='Office'?'active':''}" onclick="setAddressLabel('Office')">🏢 Office</div>
             <div class="filter-chip ${state.address.label==='Other'?'active':''}" onclick="setAddressLabel('Other')">📍 Other</div>
           </div>
           <input id="addrDetails" placeholder="House #, Street, Area..." value="${state.address.details || ''}" />
-          <input id="addrInstructions" placeholder="Delivery instructions (e.g. call before arriving)" value="${state.address.instructions || ''}" />
+          <input id="addrInstructions" placeholder="Delivery instructions (optional)" value="${state.address.instructions || ''}" />
           <button class="checkout-btn" style="background:var(--primary);" onclick="saveAddress()">Save Address</button>
           <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
         </div>
       </div>`;
     document.getElementById("modalRoot").innerHTML = html;
+    setTimeout(() => initPickerMap(), 100);
   }
+
+  let pickerMap = null;
+  let pickerMarker = null;
+  function initPickerMap() {
+    const el = document.getElementById("pickerMap");
+    if (!el) return;
+    const startPos = state.address.lat && state.address.lng ? { lat: state.address.lat, lng: state.address.lng } : DEFAULT_CENTER;
+    pickerMap = new google.maps.Map(el, {
+      center: startPos,
+      zoom: 15,
+      disableDefaultUI: true,
+      zoomControl: true
+    });
+    pickerMarker = new google.maps.Marker({
+      position: startPos,
+      map: pickerMap,
+      draggable: true
+    });
+    // Update address lat/lng when marker dragged
+    google.maps.event.addListener(pickerMarker, 'dragend', () => {
+      const pos = pickerMarker.getPosition();
+      state.address.lat = pos.lat();
+      state.address.lng = pos.lng();
+      console.log("📍 Pin moved to:", pos.lat(), pos.lng());
+    });
+    // Also update when map clicked
+    pickerMap.addListener('click', (e) => {
+      pickerMarker.setPosition(e.latLng);
+      state.address.lat = e.latLng.lat();
+      state.address.lng = e.latLng.lng();
+    });
+  }
+
   function setAddressLabel(label) { state.address.label = label; openLocationModal(); }
   function saveAddress() {
     const details = document.getElementById('addrDetails').value.trim();
     const instructions = document.getElementById('addrInstructions').value.trim();
     if (!details) return toast("Please enter address details");
-    state.address.details = details; state.address.instructions = instructions; save(); closeModal(); toast("Address saved ✅"); render();
+    state.address.details = details;
+    state.address.instructions = instructions;
+    save(); closeModal(); toast("Address saved ✅"); render();
   }
 
-  /* ---------- AUTH (Splash, Login, OTP, Signup) ---------- */
+  /* ---------- AUTH ---------- */
   function openAuth() {
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
-          <h3 id="authTitle">Welcome to SYEDGO</h3>
+          <h3>Welcome to SYEDGO</h3>
           <div id="authStep1">
             <input id="aPhone" placeholder="Phone number (e.g. 03001234567)" type="tel" />
             <button class="checkout-btn" style="background:var(--primary);" onclick="sendOTP()">Send OTP</button>
-            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">Demo: Any number works. OTP is 1234</p>
+            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">Demo: OTP is 1234</p>
           </div>
           <div id="authStep2" class="hidden">
-            <p style="text-align:center;margin-bottom:16px;">Enter the 4-digit code sent to <b id="phoneDisplay"></b></p>
+            <p style="text-align:center;margin-bottom:16px;">Enter code sent to <b id="phoneDisplay"></b></p>
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
               ${[1,2,3,4].map(i => `<input type="number" id="otp${i}" maxlength="1" style="width:50px;height:50px;text-align:center;font-size:20px;border:2px solid var(--border);border-radius:12px;" oninput="if(this.value.length===1) document.getElementById('otp${i+1}')?.focus()" />`).join("")}
             </div>
@@ -682,44 +884,32 @@ p { font-size: 13px; color: var(--text-light); }
     document.getElementById('authStep1').classList.add('hidden');
     document.getElementById('authStep2').classList.remove('hidden');
     window._phone = phone;
-    toast("OTP sent! (Use 1234)");
+    toast("OTP sent! Use 1234");
   }
 
   async function verifyOTP() {
     const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
-    if (otp !== '1234') return toast("Invalid OTP. Use 1234");
-    
+    if (otp !== '1234') return toast("Invalid OTP");
     const phone = window._phone;
     toast("Checking account...");
-    
     try {
-      const userRef = doc(db, "users", phone);
-      const snap = await getDoc(userRef);
-      
+      const snap = await getDoc(doc(db, "users", phone));
       if (snap.exists()) {
-        // EXISTING USER: Load their data and log them in
         const data = snap.data();
-        state.user = data.user || { name: "SYEDGO User", phone: phone };
+        state.user = data.user || { name: "SYEDGO User", phone };
         state.cart = data.cart || [];
         state.orders = data.orders || [];
-        state.address = data.address || { label: "Home", details: "", instructions: "" };
+        state.address = data.address || { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
         state.favorites = data.favorites || [];
         state.location = data.location || "Swat, Pakistan";
-        
-        saveLocal(); // Save loaded data to local storage
-        closeModal();
-        render();
+        saveLocal(); closeModal(); render();
         toast("Welcome back, " + state.user.name + "! 🎉");
       } else {
-        // NEW USER: Ask them to complete profile
         document.getElementById('authStep2').classList.add('hidden');
         document.getElementById('authStep3').classList.remove('hidden');
-        toast("New here! Please complete your profile.");
+        toast("New here! Complete your profile.");
       }
-    } catch (e) {
-      console.error("Auth error:", e);
-      toast("Network error. Try again.");
-    }
+    } catch (e) { console.error(e); toast("Network error"); }
   }
 
   function backToStep1() {
@@ -731,37 +921,22 @@ p { font-size: 13px; color: var(--text-light); }
     const name = document.getElementById('aName').value.trim();
     const email = document.getElementById('aEmail').value.trim();
     if (!name) return toast("Enter your name");
-    
     state.user = { name, phone: window._phone, email };
-    
-    // Save to local storage and Firebase
-    saveLocal(); 
-    saveToFirebase();
-    
-    closeModal(); 
-    render(); 
+    saveLocal(); saveToFirebase();
+    closeModal(); render();
     toast("Account created! Welcome, " + name + " 🎉");
   }
 
-  function logout() { 
-    if (!confirm("Logout? This will clear your current session.")) return; 
-    
-    // Clear all user-specific state
-    state.user = null; 
-    state.cart = []; 
-    state.orders = []; 
-    state.favorites = []; 
-    state.address = { label: "Home", details: "", instructions: "" }; 
+  function logout() {
+    if (!confirm("Logout?")) return;
+    state.user = null; state.cart = []; state.orders = []; state.favorites = [];
+    state.address = { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
     state.coupon = null;
-    
-    // Clear local storage completely
     localStorage.clear();
-    
-    render(); 
-    toast("Logged out successfully"); 
+    render(); toast("Logged out");
   }
 
-  /* ---------- RENDER: ORDERS ---------- */
+  /* ---------- ORDERS ---------- */
   function renderOrders() {
     if (!state.orders.length) return '<div class="empty"><span class="big">📦</span>No orders yet</div>';
     return `
@@ -770,7 +945,7 @@ p { font-size: 13px; color: var(--text-light); }
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <b>#${o.id}</b>
-            <span class="status-chip ${o.status==='Placed'?'pending':''} ${o.status==='Delivered'?'delivered':''}">${o.status}</span>
+            <span class="status-chip ${o.status==='Placed'?'pending':''} ${o.status==='Delivered'?'delivered':''} ${o.status==='Rider Assigned'?'assigned':''}">${o.status}</span>
           </div>
           <p style="font-size:12px;color:var(--text-light);margin-bottom:8px">${new Date(o.createdAt).toLocaleString()}</p>
           ${o.items.map(i => `<div style="font-size:13px;display:flex;justify-content:space-between;padding:3px 0"><span>${i.name} × ${i.qty}</span><span>Rs ${i.price*i.qty}</span></div>`).join("")}
@@ -782,14 +957,10 @@ p { font-size: 13px; color: var(--text-light); }
           <div style="font-size:12px;color:var(--text-light);margin-top:8px">💳 ${o.pay.toUpperCase()} • ${o.mode==='delivery'?'Delivery':'Pickup'}</div>
           
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-            <button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track</button>
+            <button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track Live</button>
             ${o.status !== 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
             ${o.status === 'Delivered' ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
             <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="reorder('${o.id}')">🔄 Reorder</button>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:8px;">
-            <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Support ticket created')">🎧 Support</button>
-            <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="toast('Refund request sent')">↩️ Refund</button>
           </div>
         </div>`).join("")}
     `;
@@ -801,26 +972,21 @@ p { font-size: 13px; color: var(--text-light); }
     save(); updateBadge(); toast("Items added to cart!"); state.tab = "cart"; render();
   }
 
-  /* ---------- RENDER: PROFILE ---------- */
+  /* ---------- PROFILE ---------- */
   function renderProfile() {
     if (!state.user) {
       return `
-        <div class="card login-card" style="text-align:center;padding:40px 20px;">
+        <div class="card" style="text-align:center;padding:40px 20px;">
           <div style="font-size:64px;margin-bottom:16px;">👤</div>
           <h3 style="margin-bottom:8px;">Welcome to SYEDGO</h3>
-          <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login to order and track your deliveries</p>
+          <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login to order</p>
           <button class="checkout-btn" style="background:var(--primary);" onclick="openAuth()">Login / Signup</button>
-        </div>
-        <div class="card">
-          <div class="profile-row" onclick="toast('Coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
-          <div class="profile-row" onclick="toast('Coming soon')"><span>🎧 Support</span><span>›</span></div>
-          <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
         </div>`;
     }
     return `
       <div class="card">
         <div style="display:flex;align-items:center;gap:16px">
-          <div class="shop-img" style="border-radius:50%;width:60px;height:60px;font-size:28px;background:var(--primary);color:#fff;">👤</div>
+          <div style="width:60px;height:60px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>
           <div>
             <h3>${state.user.name}</h3>
             <p style="font-size:13px;color:var(--text-light)">${state.user.phone} ${state.user.email ? '• ' + state.user.email : ''}</p>
@@ -828,20 +994,16 @@ p { font-size: 13px; color: var(--text-light); }
         </div>
       </div>
       <div class="card">
-        <div class="profile-row" onclick="openLocationModal()"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
-        <div class="profile-row" onclick="state.tab='orders';render()"><span>📦 My Orders</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Payment methods coming soon')"><span>💳 Payment Methods</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Coupons coming soon')"><span>🎟️ Coupons</span><span>›</span></div>
-        <div class="profile-row" onclick="state.tab='home';state.category='all';state.currentShop=null;render()"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Support ticket created')"><span>🎧 Help & Support</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('Refund request sent')"><span>↩️ Refunds</span><span>›</span></div>
-        <div class="profile-row" onclick="toast('SYEDGO App v2.0')"><span>ℹ️ About</span><span>›</span></div>
+        <div class="profile-row" onclick="openLocationModal()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>📍 Address</span><span style="color:var(--text-light);font-size:12px">${state.address.details ? state.address.details.slice(0,20)+'...' : 'Not set'}</span></div>
+        <div class="profile-row" onclick="state.tab='orders';render()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>📦 My Orders</span><span>›</span></div>
+        <div class="profile-row" onclick="state.tab='home';state.category='all';state.currentShop=null;render()" style="display:flex;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;"><span>❤️ Favourites (${state.favorites.length})</span><span>›</span></div>
+        <div class="profile-row" onclick="toast('Support ticket created')" style="display:flex;justify-content:space-between;padding:14px 0;font-size:14px;cursor:pointer;"><span>🎧 Help & Support</span><span>›</span></div>
       </div>
       <button class="checkout-btn" style="background:var(--danger)" onclick="logout()">Logout</button>
     `;
   }
 
-  /* ---------- MAIN RENDER & ROUTING ---------- */
+  /* ---------- MAIN RENDER ---------- */
   function render() {
     const app = document.getElementById("app");
     let html = "";
@@ -852,32 +1014,49 @@ p { font-size: 13px; color: var(--text-light); }
     else if (state.tab === "orders") html = renderOrders();
     else if (state.tab === "profile") html = renderProfile();
     app.innerHTML = html;
-
     document.querySelectorAll(".bottom-nav button").forEach(b => { b.classList.toggle("active", b.dataset.tab === state.tab); });
-    if (state.tab === "search") { const i = document.getElementById("searchInput"); if (i && !state.searchQuery) i.focus(); }
     updateBadge();
   }
 
   document.querySelectorAll(".bottom-nav button").forEach(btn => {
-    btn.addEventListener("click", () => { state.tab = btn.dataset.tab; state.currentShop = null; state.currentProduct = null; render(); window.scrollTo(0, 0); });
+    btn.addEventListener("click", () => {
+      state.tab = btn.dataset.tab;
+      state.currentShop = null;
+      render();
+      window.scrollTo(0, 0);
+    });
   });
 
+  function applyCoupon() {
+    const code = prompt("Enter coupon:\nTry SYED10, WELCOME50, FREESHIP");
+    if (!code) return;
+    const c = code.trim().toUpperCase();
+    if (COUPONS[c]) { state.coupon = c; save(); render(); toast("Coupon applied: " + c); }
+    else toast("Invalid coupon");
+  }
+
   /* ---------- INIT ---------- */
-  setTimeout(() => { document.getElementById('splash').style.opacity = '0'; setTimeout(() => document.getElementById('splash').remove(), 500); }, 2000);
+  setTimeout(() => {
+    document.getElementById('splash').style.opacity = '0';
+    setTimeout(() => document.getElementById('splash').remove(), 500);
+  }, 2000);
+
   document.getElementById("locLabel").textContent = state.location;
   updateBadge();
   render();
 
-  // Expose functions to window so onclick works (Required for module scripts)
-  window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome; window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav; window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode; window.updatePay = updatePay; window.placeOrder = placeOrder; window.openTracking = openTracking; window.openChat = openChat; window.sendChat = sendChat; window.openRating = openRating; window.setStar = setStar; window.submitRating = submitRating; window.openLocationModal = openLocationModal; window.setAddressLabel = setAddressLabel; window.saveAddress = saveAddress; window.openAuth = openAuth; window.sendOTP = sendOTP; window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup; window.logout = logout; window.reorder = reorder; window.closeModal = closeModal; window.toast = toast;
-  
-  function applyCoupon() {
-    const code = prompt("Enter coupon code:\nTry: SYED10, WELCOME50, FREESHIP");
-    if (!code) return;
-    const c = code.trim().toUpperCase();
-    if (COUPONS[c]) { state.coupon = c; save(); render(); toast("Coupon applied: " + c); } else { toast("Invalid coupon"); }
-  }
-  window.applyCoupon = applyCoupon;
+  // Expose all functions
+  window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome;
+  window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav;
+  window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode;
+  window.updatePay = updatePay; window.placeOrder = placeOrder; window.openTracking = openTracking;
+  window.closeTracking = closeTracking; window.openChat = openChat; window.sendChat = sendChat;
+  window.openRating = openRating; window.setStar = setStar; window.submitRating = submitRating;
+  window.openLocationModal = openLocationModal; window.setAddressLabel = setAddressLabel;
+  window.saveAddress = saveAddress; window.openAuth = openAuth; window.sendOTP = sendOTP;
+  window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup;
+  window.logout = logout; window.reorder = reorder; window.closeModal = closeModal;
+  window.toast = toast; window.applyCoupon = applyCoupon;
 </script>
 </body>
 </html>
