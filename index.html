@@ -122,8 +122,8 @@ p { font-size: 13px; color: var(--text-light); }
 .checkout-btn { width: 100%; background: var(--success); color: #fff; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; margin-top: 16px; cursor: pointer; }
 .checkout-btn:active { background: #16a34a; }
 
-/* reCAPTCHA container (hidden) */
-#recaptcha-container { position: fixed; bottom: -1000px; left: -1000px; }
+/* reCAPTCHA container (hidden off-screen) */
+#recaptcha-container { position: fixed; bottom: -9999px; left: -9999px; }
 </style>
 </head>
 <body>
@@ -193,14 +193,9 @@ p { font-size: 13px; color: var(--text-light); }
   /* ---------- STATE ---------- */
   let state = {
     tab: "home", category: "all", searchQuery: "", searchFilter: "all", currentShop: null, currentProduct: null,
-    authUser: null,
-    user: null,
-    cart: [],
-    orders: [],
-    favorites: [],
+    authUser: null, user: null, cart: [], orders: [], favorites: [],
     address: { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
-    coupon: null,
-    location: "Swat, Pakistan"
+    coupon: null, location: "Swat, Pakistan"
   };
 
   let confirmationResult = null;
@@ -243,9 +238,9 @@ p { font-size: 13px; color: var(--text-light); }
         state.favorites = data.favorites || [];
         state.location = data.location || "Swat, Pakistan";
         saveLocal();
-        return true; // Existing user
+        return true;
       } else {
-        state.user = null; // New user, needs to complete profile
+        state.user = null;
         return false;
       }
     } catch (e) {
@@ -845,13 +840,14 @@ p { font-size: 13px; color: var(--text-light); }
   /* ================ REAL AUTH ================= */
   /* ============================================ */
 
-  // Step 1: Enter phone → send real OTP via Firebase
   function openAuth() {
-    // Clear any leftover recaptcha
+    // CRITICAL: reset any existing recaptcha state
     if (recaptchaVerifier) {
       try { recaptchaVerifier.clear(); } catch (e) {}
       recaptchaVerifier = null;
     }
+    const container = document.getElementById('recaptcha-container');
+    if (container) container.innerHTML = '';
 
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
@@ -870,7 +866,6 @@ p { font-size: 13px; color: var(--text-light); }
             </div>
             <button class="checkout-btn" style="background:var(--success);" onclick="verifyOTP()">Verify & Login</button>
             <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="backToStep1()">← Change Number</button>
-            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;" id="resendText">Didn't get code? Wait 30s to resend.</p>
           </div>
           <div id="authStep3" class="hidden">
             <p style="text-align:center;margin-bottom:16px;">Welcome to SYEDGO! 👋<br>Tell us a bit about yourself.</p>
@@ -889,21 +884,32 @@ p { font-size: 13px; color: var(--text-light); }
     const phoneInput = document.getElementById('aPhone').value.trim();
     if (!phoneInput) return toast("Enter phone number");
 
-    // Auto-format: if user typed "03001234567", convert to "+923001234567"
-    let phone = phoneInput.replace(/\\s+/g, "");
+    // Auto-format: "03001234567" → "+923001234567"
+    let phone = phoneInput.replace(/\s+/g, "");
     if (phone.startsWith("0")) phone = "+92" + phone.slice(1);
     if (!phone.startsWith("+")) phone = "+92" + phone;
     window._phone = phone;
 
     try {
-      // Initialize invisible reCAPTCHA once
-      if (!recaptchaVerifier) {
-        recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-          callback: () => { console.log("reCAPTCHA solved"); },
-          "expired-callback": () => { console.log("reCAPTCHA expired"); }
-        });
+      // CRITICAL: Always clear recaptcha container before creating new verifier
+      const container = document.getElementById('recaptcha-container');
+      if (container) container.innerHTML = '';
+      
+      // Destroy old verifier if it exists
+      if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch (e) {}
+        recaptchaVerifier = null;
       }
+
+      // Create fresh verifier
+      recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+        callback: () => { console.log("✅ reCAPTCHA solved"); },
+        "expired-callback": () => { 
+          console.log("⚠️ reCAPTCHA expired"); 
+          recaptchaVerifier = null;
+        }
+      });
 
       toast("Sending OTP...");
       confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
@@ -915,45 +921,55 @@ p { font-size: 13px; color: var(--text-light); }
       toast("OTP sent! Check your SMS 📩");
     } catch (err) {
       console.error("sendOTP error:", err);
-      if (err.code === "auth/invalid-phone-number") toast("Invalid phone number");
-      else if (err.code === "auth/too-many-requests") toast("Too many attempts. Try later.");
-      else if (err.code === "auth/operation-not-allowed") toast("Phone login not enabled in Firebase");
-      else toast("Failed: " + (err.message || "Unknown error"));
-
-      // Reset recaptcha on failure
+      
+      // Reset recaptcha on ANY failure so user can retry
       if (recaptchaVerifier) {
         try { recaptchaVerifier.clear(); } catch (e) {}
         recaptchaVerifier = null;
       }
+      const container = document.getElementById('recaptcha-container');
+      if (container) container.innerHTML = '';
+
+      if (err.code === "auth/invalid-phone-number") toast("Invalid phone number");
+      else if (err.code === "auth/too-many-requests") toast("Too many attempts. Try later.");
+      else if (err.code === "auth/operation-not-allowed") toast("Phone login not enabled in Firebase");
+      else if (err.message && err.message.includes("reCAPTCHA")) {
+        toast("reCAPTCHA issue. Please close & reopen login.");
+      }
+      else toast("Failed: " + (err.code || err.message || "Unknown error"));
     }
   }
 
   async function verifyOTP() {
     const code = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
     if (code.length !== 6) return toast("Enter all 6 digits");
-
     if (!confirmationResult) return toast("Please request OTP first");
 
     try {
       toast("Verifying...");
       const result = await confirmationResult.confirm(code);
       const user = result.user;
-      const phone = user.phoneNumber; // e.g. "+923001234567"
+      const phone = user.phoneNumber;
 
       state.authUser = user;
       window._phone = phone;
 
-      // Check if this is an existing user in Firestore
-      const exists = await loadUserData(phone);
+      // Cleanup recaptcha after successful verify
+      if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch (e) {}
+        recaptchaVerifier = null;
+      }
+      const container = document.getElementById('recaptcha-container');
+      if (container) container.innerHTML = '';
 
+      // Check if user exists in Firestore
+      const exists = await loadUserData(phone);
       closeModal();
 
       if (exists) {
-        // Existing user → login directly
         render();
         toast("Welcome back, " + state.user.name + "! 🎉");
       } else {
-        // New user → show profile completion
         setTimeout(() => openProfileSetup(), 300);
         toast("New here! Complete your profile.");
       }
@@ -961,18 +977,21 @@ p { font-size: 13px; color: var(--text-light); }
       console.error("verifyOTP error:", err);
       if (err.code === "auth/invalid-verification-code") toast("Wrong OTP. Try again.");
       else if (err.code === "auth/code-expired") toast("OTP expired. Request new one.");
-      else toast("Verification failed");
+      else toast("Verification failed: " + (err.code || err.message));
     }
   }
 
   function backToStep1() {
-    document.getElementById('authStep2').classList.add('hidden');
-    document.getElementById('authStep1').classList.remove('hidden');
-    // Reset recaptcha so user can request OTP again
+    // Reset recaptcha so user can request OTP again on same page
     if (recaptchaVerifier) {
       try { recaptchaVerifier.clear(); } catch (e) {}
       recaptchaVerifier = null;
     }
+    const container = document.getElementById('recaptcha-container');
+    if (container) container.innerHTML = '';
+    
+    document.getElementById('authStep2').classList.add('hidden');
+    document.getElementById('authStep1').classList.remove('hidden');
   }
 
   function openProfileSetup() {
@@ -1110,7 +1129,7 @@ p { font-size: 13px; color: var(--text-light); }
   });
 
   function applyCoupon() {
-    const code = prompt("Enter coupon:\\nTry SYED10, WELCOME50, FREESHIP");
+    const code = prompt("Enter coupon:\nTry SYED10, WELCOME50, FREESHIP");
     if (!code) return;
     const c = code.trim().toUpperCase();
     if (COUPONS[c]) { state.coupon = c; save(); render(); toast("Coupon applied: " + c); }
@@ -1134,28 +1153,21 @@ p { font-size: 13px; color: var(--text-light); }
     console.log("🔐 Auth state changed:", user ? user.phoneNumber : "logged out");
 
     if (user) {
-      // User is signed in (either restored from cache on app open, or just verified OTP)
       state.authUser = user;
       const phone = user.phoneNumber;
-
       const exists = await loadUserData(phone);
 
       if (exists) {
-        // Existing user — load their data and show the app
         console.log("✅ Existing user loaded:", state.user.name);
         render();
       } else {
-        // New user — but only show signup form if the auth modal is already open
-        // (If app is auto-restoring and no profile exists, show signup)
         const authModalOpen = document.getElementById('authStep3') || document.getElementById('modalRoot').innerHTML.includes('Complete Your Profile');
         if (!authModalOpen) {
           render();
-          // Wait for render, then open profile setup
           setTimeout(() => openProfileSetup(), 500);
         }
       }
     } else {
-      // User is signed out
       state.authUser = null;
       state.user = null;
       render();
