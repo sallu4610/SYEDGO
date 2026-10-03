@@ -121,6 +121,9 @@ p { font-size: 13px; color: var(--text-light); }
 .status-chip.cancelled { background: #fee2e2; color: #991b1b; }
 .checkout-btn { width: 100%; background: var(--success); color: #fff; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; margin-top: 16px; cursor: pointer; }
 .checkout-btn:active { background: #16a34a; }
+
+/* reCAPTCHA container (hidden) */
+#recaptcha-container { position: fixed; bottom: -1000px; left: -1000px; }
 </style>
 </head>
 <body>
@@ -149,11 +152,13 @@ p { font-size: 13px; color: var(--text-light); }
 </div>
 <div id="toast" class="toast"></div>
 <div id="modalRoot"></div>
+<div id="recaptcha-container"></div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-analytics.js";
   import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDGykbkZ4ITxkEgcxaQNZlH9rFO86c-xEU",
@@ -168,7 +173,9 @@ p { font-size: 13px; color: var(--text-light); }
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
+  const auth = getAuth(app);
 
+  /* ---------- CONFIG & DATA ---------- */
   const CONFIG = { PLATFORM_FEE: 30, DEFAULT_DELIVERY: 150, RIDER_CUT: 120, SYEDGO_MARGIN: 30 };
   const DEFAULT_CENTER = { lat: 34.7717, lng: 72.3600 };
 
@@ -183,17 +190,21 @@ p { font-size: 13px; color: var(--text-light); }
   const CATEGORIES = [ { key: "all", label: "All", em: "🏪" }, { key: "Restaurant", label: "Food", em: "🍔" }, { key: "Supermarket", label: "Grocery", em: "🛒" }, { key: "Pharmacy", label: "Pharmacy", em: "💊" }, { key: "Fruits & Veg", label: "Fruits", em: "🍎" } ];
   const COUPONS = { "SYED10": { type: "percent", value: 10, min: 500 }, "WELCOME50": { type: "flat", value: 50, min: 300 }, "FREESHIP": { type: "shipping", value: 0, min: 0 } };
 
+  /* ---------- STATE ---------- */
   let state = {
     tab: "home", category: "all", searchQuery: "", searchFilter: "all", currentShop: null, currentProduct: null,
-    user: JSON.parse(localStorage.getItem("syedgo_user")) || null,
-    cart: JSON.parse(localStorage.getItem("syedgo_cart")) || [],
-    orders: JSON.parse(localStorage.getItem("syedgo_orders")) || [],
-    favorites: JSON.parse(localStorage.getItem("syedgo_fav")) || [],
-    address: JSON.parse(localStorage.getItem("syedgo_addr")) || { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
-    coupon: JSON.parse(localStorage.getItem("syedgo_coupon")) || null,
-    location: localStorage.getItem("syedgo_loc") || "Swat, Pakistan"
+    authUser: null,
+    user: null,
+    cart: [],
+    orders: [],
+    favorites: [],
+    address: { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng },
+    coupon: null,
+    location: "Swat, Pakistan"
   };
 
+  let confirmationResult = null;
+  let recaptchaVerifier = null;
   let liveMap = null, liveRiderMarker = null, liveCustomerMarker = null;
   let riderLocationListener = null, orderStatusListener = null;
 
@@ -210,7 +221,7 @@ p { font-size: 13px; color: var(--text-light); }
   }
 
   function saveLocal() {
-    localStorage.setItem("syedgo_user", JSON.stringify(state.user));
+    if (state.user) localStorage.setItem("syedgo_user", JSON.stringify(state.user));
     localStorage.setItem("syedgo_cart", JSON.stringify(state.cart));
     localStorage.setItem("syedgo_orders", JSON.stringify(state.orders));
     localStorage.setItem("syedgo_fav", JSON.stringify(state.favorites));
@@ -220,7 +231,42 @@ p { font-size: 13px; color: var(--text-light); }
   }
   function save() { saveLocal(); saveToFirebase(); }
 
-  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2200); }
+  async function loadUserData(phone) {
+    try {
+      const snap = await getDoc(doc(db, "users", phone));
+      if (snap.exists()) {
+        const data = snap.data();
+        state.user = data.user || { name: "SYEDGO User", phone };
+        state.cart = data.cart || [];
+        state.orders = data.orders || [];
+        state.address = data.address || { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
+        state.favorites = data.favorites || [];
+        state.location = data.location || "Swat, Pakistan";
+        saveLocal();
+        return true; // Existing user
+      } else {
+        state.user = null; // New user, needs to complete profile
+        return false;
+      }
+    } catch (e) {
+      console.error("Load user data error:", e);
+      return false;
+    }
+  }
+
+  function clearUserData() {
+    state.authUser = null;
+    state.user = null;
+    state.cart = [];
+    state.orders = [];
+    state.favorites = [];
+    state.address = { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
+    state.coupon = null;
+    localStorage.clear();
+  }
+
+  /* ---------- HELPERS ---------- */
+  function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(window._t); window._t = setTimeout(() => t.classList.remove("show"), 2500); }
   function closeModal() { document.getElementById("modalRoot").innerHTML = ""; }
   function findProduct(id) { for (const s of SHOPS) { const p = s.products.find(x => x.id === id); if (p) return { ...p, shopId: s.id, shopName: s.name }; } return null; }
   function cartCount() { return state.cart.reduce((a, b) => a + b.qty, 0); }
@@ -237,6 +283,7 @@ p { font-size: 13px; color: var(--text-light); }
   function openShop(id) { state.currentShop = id; render(); window.scrollTo(0,0); }
   function backToHome() { state.currentShop = null; state.currentProduct = null; render(); }
 
+  /* ---------- HOME ---------- */
   function renderHome() {
     const featured = SHOPS.filter(s => s.featured);
     const list = SHOPS.filter(s => state.category === "all" || s.category === state.category);
@@ -487,7 +534,6 @@ p { font-size: 13px; color: var(--text-light); }
     catch (e) { console.error("Failed:", e); toast("Cloud sync failed"); }
   }
 
-  /* ---------- CANCEL ORDER ---------- */
   async function cancelOrder(orderId) {
     const o = state.orders.find(x => x.id === orderId);
     if (!o) return;
@@ -497,22 +543,16 @@ p { font-size: 13px; color: var(--text-light); }
     if (!confirm("Cancel this order? This cannot be undone.")) return;
     try {
       await updateDoc(doc(db, "orders", orderId), {
-        status: "Cancelled",
-        cancelledAt: new Date().toISOString(),
-        cancelledBy: "Customer"
+        status: "Cancelled", cancelledAt: new Date().toISOString(), cancelledBy: "Customer"
       });
       o.status = "Cancelled";
       o.timeline = [...(o.timeline || []), "Cancelled"];
       saveLocal();
       toast("Order cancelled ❌");
       render();
-    } catch (e) {
-      console.error("Cancel error:", e);
-      toast("Failed to cancel order");
-    }
+    } catch (e) { console.error("Cancel error:", e); toast("Failed to cancel order"); }
   }
 
-  /* ---------- LIVE TRACKING ---------- */
   function openTracking(orderId) {
     const o = state.orders.find(x => x.id === orderId);
     if (!o) return;
@@ -525,7 +565,6 @@ p { font-size: 13px; color: var(--text-light); }
             <h3 style="margin:0;">Track #${o.id}</h3>
             <button class="add-btn" style="background:#f1f5f9;color:var(--text)" onclick="closeTracking()">✕</button>
           </div>
-          
           <div id="liveTrackingMap"></div>
           <div id="riderInfoBox"></div>
           <div id="timelineBox">
@@ -629,8 +668,6 @@ p { font-size: 13px; color: var(--text-light); }
               }).join("")}
             </div>`;
         }
-        if (data.status === "Delivered") toast("Order delivered! 🎉");
-        if (data.status === "Cancelled") toast("Order cancelled");
       }
     });
   }
@@ -706,7 +743,7 @@ p { font-size: 13px; color: var(--text-light); }
   }
   function submitRating() { if(!window._storeRating || !window._riderRating) return toast("Please rate both"); closeModal(); toast("Thanks for your feedback! ⭐"); }
 
-  /* ---------- LOCATION WITH REVERSE GEOCODING ---------- */
+  /* ---------- LOCATION ---------- */
   let pickerMap = null, pickerMarker = null;
 
   function openLocationModal() {
@@ -714,26 +751,20 @@ p { font-size: 13px; color: var(--text-light); }
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
           <h3>Delivery Address</h3>
-          
           <button class="add-btn" onclick="goToMyLocation()" style="width:100%;margin-bottom:12px;background:#dbeafe;color:#1e40af;padding:12px;font-size:13px;">
             📍 Use My Current Location
           </button>
-          
           <div id="pickerMap" style="width:100%;height:220px;border-radius:14px;margin-bottom:12px;background:#e2e8f0;"></div>
           <p style="font-size:11px;text-align:center;color:var(--text-light);margin-bottom:14px;">Drag the pin 📍 or tap on map to set exact location</p>
-          
           <div style="display:flex;gap:8px;margin-bottom:12px;">
             <div class="filter-chip ${state.address.label==='Home'?'active':''}" onclick="setAddressLabel('Home')">🏠 Home</div>
             <div class="filter-chip ${state.address.label==='Office'?'active':''}" onclick="setAddressLabel('Office')">🏢 Office</div>
             <div class="filter-chip ${state.address.label==='Other'?'active':''}" onclick="setAddressLabel('Other')">📍 Other</div>
           </div>
-          
-          <label style="font-size:12px;color:var(--text-light);margin-bottom:4px;display:block;">Full Address (auto-fills when you move the pin)</label>
+          <label style="font-size:12px;color:var(--text-light);margin-bottom:4px;display:block;">Full Address</label>
           <input id="addrDetails" placeholder="House #, Street, Area..." value="${state.address.details || ''}" />
-          
           <label style="font-size:12px;color:var(--text-light);margin-bottom:4px;display:block;">Delivery Instructions (optional)</label>
           <input id="addrInstructions" placeholder="e.g. Call before arriving" value="${state.address.instructions || ''}" />
-          
           <button class="checkout-btn" style="background:var(--primary);" onclick="saveAddress()">Save Address</button>
           <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
         </div>
@@ -753,21 +784,15 @@ p { font-size: 13px; color: var(--text-light); }
       position: startPos, map: pickerMap, draggable: true,
       animation: google.maps.Animation.DROP
     });
-
     google.maps.event.addListener(pickerMarker, 'dragend', () => {
       const pos = pickerMarker.getPosition();
-      const lat = pos.lat(), lng = pos.lng();
-      state.address.lat = lat;
-      state.address.lng = lng;
-      reverseGeocode(lat, lng);
+      state.address.lat = pos.lat(); state.address.lng = pos.lng();
+      reverseGeocode(pos.lat(), pos.lng());
     });
-
     pickerMap.addListener('click', (e) => {
-      const lat = e.latLng.lat(), lng = e.latLng.lng();
       pickerMarker.setPosition(e.latLng);
-      state.address.lat = lat;
-      state.address.lng = lng;
-      reverseGeocode(lat, lng);
+      state.address.lat = e.latLng.lat(); state.address.lng = e.latLng.lng();
+      reverseGeocode(e.latLng.lat(), e.latLng.lng());
     });
   }
 
@@ -777,68 +802,36 @@ p { font-size: 13px; color: var(--text-light); }
     const geocoder = new google.maps.Geocoder();
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
       if (status === "OK" && results[0]) {
-        const formatted = results[0].formatted_address;
-        if (input) input.value = formatted;
-        console.log("📍 Reverse geocoded:", formatted);
+        if (input) input.value = results[0].formatted_address;
       } else {
         if (input) input.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        console.warn("Geocoding failed:", status);
       }
     });
   }
 
   function goToMyLocation() {
-    if (!navigator.geolocation) {
-      return toast("GPS not supported on this device");
-    }
-
-    // Check if we're on HTTPS or localhost (required for GPS)
+    if (!navigator.geolocation) return toast("GPS not supported");
     const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (!isSecure) {
-      alert("⚠️ Location requires HTTPS.\\n\\nYour app is running on: " + location.protocol + "\\n\\nSolution: Test via 'localhost' (VS Code Live Server) or host on Vercel/Netlify to use GPS.");
-      return;
-    }
-
+    if (!isSecure) { alert("⚠️ Location requires HTTPS or localhost."); return; }
     toast("Getting your location...");
-
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        state.address.lat = lat;
-        state.address.lng = lng;
-        if (pickerMap) {
-          pickerMap.setCenter({ lat, lng });
-          pickerMap.setZoom(17);
-        }
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        state.address.lat = lat; state.address.lng = lng;
+        if (pickerMap) { pickerMap.setCenter({ lat, lng }); pickerMap.setZoom(17); }
         if (pickerMarker) pickerMarker.setPosition({ lat, lng });
         reverseGeocode(lat, lng);
         toast("Location set ✅");
       },
       (err) => {
-        console.error("Geolocation error:", err);
-        let msg = "";
-        if (err.code === 1) {
-          msg = "🚫 Location permission blocked.\\n\\nHow to fix:\\n1. Tap the 🔒 lock icon in your browser's URL bar\\n2. Tap 'Permissions'\\n3. Set 'Location' to ALLOW\\n4. Refresh the page\\n\\nOr: Open browser Settings → Site Settings → Location → Allow";
-        } else if (err.code === 2) {
-          msg = "📍 Location unavailable. Make sure GPS/Location is ON in your phone settings.";
-        } else if (err.code === 3) {
-          msg = "⏱️ Location request timed out. Try again.";
-        } else {
-          msg = "Location error: " + err.message;
-        }
+        let msg = err.code === 1 ? "🚫 Location permission blocked. Enable it in browser settings and reload." : "Location error: " + err.message;
         alert(msg);
-        toast("Location blocked - see instructions");
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }
 
-  function setAddressLabel(label) {
-    state.address.label = label;
-    openLocationModal();
-  }
-
+  function setAddressLabel(label) { state.address.label = label; openLocationModal(); }
   function saveAddress() {
     const details = document.getElementById('addrDetails').value.trim();
     const instructions = document.getElementById('addrInstructions').value.trim();
@@ -848,94 +841,178 @@ p { font-size: 13px; color: var(--text-light); }
     save(); closeModal(); toast("Address saved ✅"); render();
   }
 
-  /* ---------- AUTH ---------- */
+  /* ============================================ */
+  /* ================ REAL AUTH ================= */
+  /* ============================================ */
+
+  // Step 1: Enter phone → send real OTP via Firebase
   function openAuth() {
+    // Clear any leftover recaptcha
+    if (recaptchaVerifier) {
+      try { recaptchaVerifier.clear(); } catch (e) {}
+      recaptchaVerifier = null;
+    }
+
     const html = `
       <div class="overlay" onclick="if(event.target===this)closeModal()">
         <div class="sheet">
-          <h3>Welcome to SYEDGO</h3>
+          <h3>Login to SYEDGO</h3>
           <div id="authStep1">
-            <input id="aPhone" placeholder="Phone number (e.g. 03001234567)" type="tel" />
+            <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">Enter your phone number. We'll send you an OTP.</p>
+            <input id="aPhone" placeholder="+92 300 1234567" type="tel" />
             <button class="checkout-btn" style="background:var(--primary);" onclick="sendOTP()">Send OTP</button>
-            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">Demo: OTP is 1234</p>
+            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;">We never share your number with anyone.</p>
           </div>
           <div id="authStep2" class="hidden">
-            <p style="text-align:center;margin-bottom:16px;">Enter code sent to <b id="phoneDisplay"></b></p>
+            <p style="text-align:center;margin-bottom:16px;">Enter the 6-digit code sent to <b id="phoneDisplay"></b></p>
             <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
-              ${[1,2,3,4].map(i => `<input type="number" id="otp${i}" maxlength="1" style="width:50px;height:50px;text-align:center;font-size:20px;border:2px solid var(--border);border-radius:12px;" oninput="if(this.value.length===1) document.getElementById('otp${i+1}')?.focus()" />`).join("")}
+              ${[1,2,3,4,5,6].map(i => `<input type="number" id="otp${i}" maxlength="1" style="width:44px;height:52px;text-align:center;font-size:20px;border:2px solid var(--border);border-radius:12px;" oninput="if(this.value.length===1) document.getElementById('otp${i+1}')?.focus()" onkeydown="if(event.key==='Backspace' && !this.value) document.getElementById('otp${i-1}')?.focus()" />`).join("")}
             </div>
             <button class="checkout-btn" style="background:var(--success);" onclick="verifyOTP()">Verify & Login</button>
             <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="backToStep1()">← Change Number</button>
+            <p style="font-size:11px;color:var(--text-light);margin-top:12px;text-align:center;" id="resendText">Didn't get code? Wait 30s to resend.</p>
           </div>
           <div id="authStep3" class="hidden">
-            <p style="text-align:center;margin-bottom:16px;">Complete your profile</p>
+            <p style="text-align:center;margin-bottom:16px;">Welcome to SYEDGO! 👋<br>Tell us a bit about yourself.</p>
             <input id="aName" placeholder="Full Name" />
-            <input id="aEmail" placeholder="Email Address" type="email" />
+            <input id="aEmail" placeholder="Email Address (optional)" type="email" />
             <button class="checkout-btn" style="background:var(--primary);" onclick="completeSignup()">Create Account</button>
           </div>
           <button class="add-btn" style="width:100%;margin-top:10px;background:#f1f5f9;color:var(--text)" onclick="closeModal()">Cancel</button>
         </div>
       </div>`;
     document.getElementById("modalRoot").innerHTML = html;
+    setTimeout(() => document.getElementById('aPhone')?.focus(), 100);
   }
 
-  function sendOTP() {
-    const phone = document.getElementById('aPhone').value.trim();
-    if (!phone) return toast("Enter phone number");
-    document.getElementById('phoneDisplay').textContent = phone;
-    document.getElementById('authStep1').classList.add('hidden');
-    document.getElementById('authStep2').classList.remove('hidden');
+  async function sendOTP() {
+    const phoneInput = document.getElementById('aPhone').value.trim();
+    if (!phoneInput) return toast("Enter phone number");
+
+    // Auto-format: if user typed "03001234567", convert to "+923001234567"
+    let phone = phoneInput.replace(/\\s+/g, "");
+    if (phone.startsWith("0")) phone = "+92" + phone.slice(1);
+    if (!phone.startsWith("+")) phone = "+92" + phone;
     window._phone = phone;
-    toast("OTP sent! Use 1234");
+
+    try {
+      // Initialize invisible reCAPTCHA once
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+          callback: () => { console.log("reCAPTCHA solved"); },
+          "expired-callback": () => { console.log("reCAPTCHA expired"); }
+        });
+      }
+
+      toast("Sending OTP...");
+      confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+
+      document.getElementById('phoneDisplay').textContent = phone;
+      document.getElementById('authStep1').classList.add('hidden');
+      document.getElementById('authStep2').classList.remove('hidden');
+      document.getElementById('otp1')?.focus();
+      toast("OTP sent! Check your SMS 📩");
+    } catch (err) {
+      console.error("sendOTP error:", err);
+      if (err.code === "auth/invalid-phone-number") toast("Invalid phone number");
+      else if (err.code === "auth/too-many-requests") toast("Too many attempts. Try later.");
+      else if (err.code === "auth/operation-not-allowed") toast("Phone login not enabled in Firebase");
+      else toast("Failed: " + (err.message || "Unknown error"));
+
+      // Reset recaptcha on failure
+      if (recaptchaVerifier) {
+        try { recaptchaVerifier.clear(); } catch (e) {}
+        recaptchaVerifier = null;
+      }
+    }
   }
 
   async function verifyOTP() {
-    const otp = ['otp1','otp2','otp3','otp4'].map(id => document.getElementById(id).value).join('');
-    if (otp !== '1234') return toast("Invalid OTP");
-    const phone = window._phone;
-    toast("Checking account...");
+    const code = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
+    if (code.length !== 6) return toast("Enter all 6 digits");
+
+    if (!confirmationResult) return toast("Please request OTP first");
+
     try {
-      const snap = await getDoc(doc(db, "users", phone));
-      if (snap.exists()) {
-        const data = snap.data();
-        state.user = data.user || { name: "SYEDGO User", phone };
-        state.cart = data.cart || [];
-        state.orders = data.orders || [];
-        state.address = data.address || { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
-        state.favorites = data.favorites || [];
-        state.location = data.location || "Swat, Pakistan";
-        saveLocal(); closeModal(); render();
+      toast("Verifying...");
+      const result = await confirmationResult.confirm(code);
+      const user = result.user;
+      const phone = user.phoneNumber; // e.g. "+923001234567"
+
+      state.authUser = user;
+      window._phone = phone;
+
+      // Check if this is an existing user in Firestore
+      const exists = await loadUserData(phone);
+
+      closeModal();
+
+      if (exists) {
+        // Existing user → login directly
+        render();
         toast("Welcome back, " + state.user.name + "! 🎉");
       } else {
-        document.getElementById('authStep2').classList.add('hidden');
-        document.getElementById('authStep3').classList.remove('hidden');
+        // New user → show profile completion
+        setTimeout(() => openProfileSetup(), 300);
         toast("New here! Complete your profile.");
       }
-    } catch (e) { console.error(e); toast("Network error"); }
+    } catch (err) {
+      console.error("verifyOTP error:", err);
+      if (err.code === "auth/invalid-verification-code") toast("Wrong OTP. Try again.");
+      else if (err.code === "auth/code-expired") toast("OTP expired. Request new one.");
+      else toast("Verification failed");
+    }
   }
 
   function backToStep1() {
     document.getElementById('authStep2').classList.add('hidden');
     document.getElementById('authStep1').classList.remove('hidden');
+    // Reset recaptcha so user can request OTP again
+    if (recaptchaVerifier) {
+      try { recaptchaVerifier.clear(); } catch (e) {}
+      recaptchaVerifier = null;
+    }
   }
 
-  function completeSignup() {
+  function openProfileSetup() {
+    const html = `
+      <div class="overlay">
+        <div class="sheet">
+          <h3>Complete Your Profile</h3>
+          <p style="text-align:center;margin-bottom:16px;font-size:13px;">Welcome to SYEDGO! 👋</p>
+          <input id="aName" placeholder="Full Name" />
+          <input id="aEmail" placeholder="Email Address (optional)" type="email" />
+          <button class="checkout-btn" style="background:var(--primary);" onclick="completeSignup()">Create Account</button>
+        </div>
+      </div>`;
+    document.getElementById("modalRoot").innerHTML = html;
+    setTimeout(() => document.getElementById('aName')?.focus(), 100);
+  }
+
+  async function completeSignup() {
     const name = document.getElementById('aName').value.trim();
     const email = document.getElementById('aEmail').value.trim();
-    if (!name) return toast("Enter your name");
-    state.user = { name, phone: window._phone, email };
-    saveLocal(); saveToFirebase();
-    closeModal(); render();
+    if (!name) return toast("Please enter your name");
+
+    state.user = { name, phone: window._phone, email, createdAt: new Date().toISOString() };
+    saveLocal();
+    await saveToFirebase();
+    closeModal();
+    render();
     toast("Account created! Welcome, " + name + " 🎉");
   }
 
-  function logout() {
-    if (!confirm("Logout?")) return;
-    state.user = null; state.cart = []; state.orders = []; state.favorites = [];
-    state.address = { label: "Home", details: "", instructions: "", lat: DEFAULT_CENTER.lat, lng: DEFAULT_CENTER.lng };
-    state.coupon = null;
-    localStorage.clear();
-    render(); toast("Logged out");
+  async function logout() {
+    if (!confirm("Logout? You'll need OTP again to login.")) return;
+
+    try { await signOut(auth); } catch (e) { console.error("Signout error:", e); }
+
+    clearUserData();
+    closeModal();
+    state.tab = "home";
+    render();
+    toast("Logged out successfully");
   }
 
   /* ---------- ORDERS ---------- */
@@ -961,17 +1038,13 @@ p { font-size: 13px; color: var(--text-light); }
             <div style="display:flex;justify-content:space-between;font-weight:bold;color:var(--text);margin-top:4px;"><span>Total Paid</span><span>Rs ${o.total}</span></div>
           </div>
           <div style="font-size:12px;color:var(--text-light);margin-top:8px">💳 ${o.pay.toUpperCase()} • ${o.mode==='delivery'?'Delivery':'Pickup'}</div>
-          
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
             ${!isCancelled ? `<button class="add-btn" style="flex:1;background:var(--primary);" onclick="openTracking('${o.id}')">📍 Track Live</button>` : ''}
             ${!isCancelled && !isDelivered ? `<button class="add-btn" style="flex:1;background:var(--success);" onclick="openChat('${o.id}')">💬 Chat</button>` : ''}
             ${isDelivered ? `<button class="add-btn" style="flex:1;background:var(--accent);" onclick="openRating('${o.id}')">⭐ Rate</button>` : ''}
             <button class="add-btn" style="flex:1;background:#f1f5f9;color:var(--text);" onclick="reorder('${o.id}')">🔄 Reorder</button>
           </div>
-          
-          ${canCancel ? `
-            <button class="add-btn" style="width:100%;margin-top:8px;background:var(--danger);color:#fff;padding:10px;" onclick="cancelOrder('${o.id}')">❌ Cancel Order</button>
-          ` : ''}
+          ${canCancel ? `<button class="add-btn" style="width:100%;margin-top:8px;background:var(--danger);color:#fff;padding:10px;" onclick="cancelOrder('${o.id}')">❌ Cancel Order</button>` : ''}
         </div>`;
       }).join("")}
     `;
@@ -989,7 +1062,7 @@ p { font-size: 13px; color: var(--text-light); }
         <div class="card" style="text-align:center;padding:40px 20px;">
           <div style="font-size:64px;margin-bottom:16px;">👤</div>
           <h3 style="margin-bottom:8px;">Welcome to SYEDGO</h3>
-          <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login to order</p>
+          <p style="color:var(--text-light);font-size:13px;margin-bottom:20px;">Login with your phone number</p>
           <button class="checkout-btn" style="background:var(--primary);" onclick="openAuth()">Login / Signup</button>
         </div>`;
     }
@@ -1044,15 +1117,55 @@ p { font-size: 13px; color: var(--text-light); }
     else toast("Invalid coupon");
   }
 
+  /* ============================================ */
+  /* ========== APP INIT & AUTH CHECK =========== */
+  /* ============================================ */
+
   setTimeout(() => {
     document.getElementById('splash').style.opacity = '0';
-    setTimeout(() => document.getElementById('splash').remove(), 500);
+    setTimeout(() => document.getElementById('splash')?.remove(), 500);
   }, 2000);
 
   document.getElementById("locLabel").textContent = state.location;
   updateBadge();
+
+  // Listen to Firebase Auth state — this is what makes "stay logged in" work
+  onAuthStateChanged(auth, async (user) => {
+    console.log("🔐 Auth state changed:", user ? user.phoneNumber : "logged out");
+
+    if (user) {
+      // User is signed in (either restored from cache on app open, or just verified OTP)
+      state.authUser = user;
+      const phone = user.phoneNumber;
+
+      const exists = await loadUserData(phone);
+
+      if (exists) {
+        // Existing user — load their data and show the app
+        console.log("✅ Existing user loaded:", state.user.name);
+        render();
+      } else {
+        // New user — but only show signup form if the auth modal is already open
+        // (If app is auto-restoring and no profile exists, show signup)
+        const authModalOpen = document.getElementById('authStep3') || document.getElementById('modalRoot').innerHTML.includes('Complete Your Profile');
+        if (!authModalOpen) {
+          render();
+          // Wait for render, then open profile setup
+          setTimeout(() => openProfileSetup(), 500);
+        }
+      }
+    } else {
+      // User is signed out
+      state.authUser = null;
+      state.user = null;
+      render();
+    }
+  });
+
+  // Initial render (before auth loads)
   render();
 
+  // Expose to window
   window.setCategory = setCategory; window.openShop = openShop; window.backToHome = backToHome;
   window.addToCart = addToCart; window.changeQty = changeQty; window.toggleFav = toggleFav;
   window.openProduct = openProduct; window.openCheckout = openCheckout; window.updateMode = updateMode;
@@ -1064,7 +1177,7 @@ p { font-size: 13px; color: var(--text-light); }
   window.verifyOTP = verifyOTP; window.backToStep1 = backToStep1; window.completeSignup = completeSignup;
   window.logout = logout; window.reorder = reorder; window.closeModal = closeModal;
   window.toast = toast; window.applyCoupon = applyCoupon; window.cancelOrder = cancelOrder;
-  window.goToMyLocation = goToMyLocation;
+  window.goToMyLocation = goToMyLocation; window.openProfileSetup = openProfileSetup;
 </script>
 </body>
 </html>
